@@ -1,0 +1,999 @@
+
+PROCURA
+Plateforme Source-to-Contract — On-Premise
+
+CAHIER DES CHARGES OFFICIEL
+
+Version 1.0
+Document Confidentiel — Usage Interne
+
+
+TABLE DES MATIÈRES
+
+PARTIE I — PRÉSENTATION GÉNÉRALE
+1. Présentation de Procura
+2. Contexte du Projet
+3. Problématique
+4. Objectifs du Projet
+5. Périmètre du Projet
+6. Parties Prenantes
+PARTIE II — ÉTUDE FONCTIONNELLE
+7. Description du Processus Métier
+8. Cas d'Utilisation (Use Cases)
+9. Rôles & Permissions (RBAC Complet)
+10. Exigences Fonctionnelles
+11. Exigences Non Fonctionnelles
+PARTIE III — ARCHITECTURE FONCTIONNELLE
+12. Vue d'Ensemble de la Plateforme
+13. Modules Fonctionnels (22 modules)
+PARTIE IV — ARCHITECTURE TECHNIQUE
+14. Architecture Générale
+Modules 1 à 22 détaillés
+PARTIE V — DONNÉES
+19. Modèle de Données
+20. Dictionnaire de Données
+21. Gestion Documentaire
+PARTIE VI — INTERFACES
+22. Interface Utilisateur Interne
+23. Portail Fournisseur
+24. Back Office Administration
+PARTIE VII — INTÉGRATION
+25. Intégration ERP
+26. Services Externes
+PARTIE VIII — SÉCURITÉ
+27. Politique de Sécurité
+28. Conformité (Loi 23-12, Loi 18-07, ISO)
+29. Gestion des Risques
+PARTIE IX — EXPLOITATION
+30. Déploiement
+31. Supervision
+32. Sauvegarde
+33. Maintenance
+PARTIE X — QUALITÉ
+34. Plan de Tests
+35. Recette
+PARTIE XI — GESTION DU PROJET
+36. Roadmap (MVP → V3)
+37. Planning
+38. Budget
+39. Gouvernance (RACI, Comités)
+PARTIE XII — ANNEXES
+40. Glossaire
+41. Références
+42. Diagrammes UML
+43. Maquettes UI
+44. Architecture Technique Complète
+45. Annexes Diverses
+
+PARTIE I — PRÉSENTATION GÉNÉRALE
+
+1. Présentation de Procura
+1.1 Contexte
+Les organisations algériennes et plus largement les entreprises opérant dans des environnements réglementés font face à une digitalisation croissante de leurs processus internes. Les achats publics et privés restent pourtant souvent gérés par des procédures manuelles, papier ou semi-numérisées, exposées à des risques de fraude, de manque de traçabilité et de non-conformité réglementaire.
+Dans ce contexte, Procura naît de la nécessité de proposer une solution on-premise, souveraine, sécurisée et parfaitement adaptée aux exigences locales, sans rupture organisationnelle et sans recours à un cloud public.
+1.2 Présentation de la Startup
+Procura est développé par une startup spécialisée dans la digitalisation des processus d'achats pour le marché algérien et les marchés à contraintes réglementaires fortes. L'équipe fondatrice combine des expertises en cybersécurité, en architecture logicielle, en gestion des achats et en conformité réglementaire.
+La startup se positionne sur le segment des PME et des grandes entreprises souhaitant moderniser leur cycle achat sans compromettre leur souveraineté numérique ni leur organisation interne existante.
+1.3 Vision
+Devenir la référence des solutions Source-to-Contract sécurisées sur le marché algérien et dans les marchés émergents à forte contrainte réglementaire, en proposant une plateforme 100 % on-premise, souveraine, traçable et auditables.
+1.4 Mission
+Digitaliser, sécuriser et tracer l'intégralité du processus d'achat depuis l'expression du besoin interne jusqu'à la transmission des données vers l'ERP de l'organisation, sans modifier les procédures réglementaires ni organisationnelles déjà en place.
+1.5 Valeurs
+Souveraineté numérique : aucune donnée hébergée hors du périmètre du client
+Conformité réglementaire : respect total des procédures existantes
+Sécurité by design : la sécurité est intégrée à chaque composant
+Traçabilité absolue : chaque action est enregistrée, horodatée et signée
+Neutralité fonctionnelle : Procura assiste, n'automatise pas les décisions humaines
+1.6 Historique
+Procura est né d'un constat de terrain : les appels d'offres, RFQ et consultations fournisseurs sont gérés par email, fichiers Excel ou procédures papier, engendrant des risques juridiques, des fuites d'information et une impossibilité d'audit fiable. La solution a été conçue pour répondre précisément à ces problématiques, en partant des contraintes réglementaires locales pour construire une architecture adaptée.
+1.7 Pourquoi Procura
+Les solutions internationales de type SaaS ne répondent pas aux contraintes de souveraineté des données imposées par la réglementation algérienne. Les solutions ERP incluent rarement un module achat aussi spécialisé sur le Source-to-Contract. Procura comble ce vide en proposant une solution dédiée, intégrable à tout ERP existant, sans en remplacer les fonctionnalités.
+
+2. Contexte du Projet
+2.1 Contexte du Marché
+Le marché algérien est soumis à un cadre réglementaire strict en matière de marchés publics (décret présidentiel relatif aux marchés publics) et à des lois de protection des données (Loi 18-07) qui imposent l'hébergement local des données sensibles. Par ailleurs, la directive de digitalisation portée par le gouvernement et les entreprises nationales crée une demande croissante en solutions numériques souveraines.
+Au niveau international, les normes ISO 9001, ISO 27001 et les standards OWASP guident les pratiques de sécurité et de qualité que Procura intègre nativement.
+2.2 État Actuel des Achats
+Dans la grande majorité des organisations cibles, le processus achat est aujourd'hui caractérisé par :
+Des échanges par email non sécurisés entre acheteurs et fournisseurs
+Des offres reçues en clair, sans chiffrement ni contrôle d'accès
+Une absence de coffre-fort numérique pour la conservation des offres
+Des ouvertures de plis sans traçabilité numérique formelle
+Une dépendance à des fichiers Excel ou tableaux manuels pour la comparaison des offres
+Une intégration ERP manuelle, source d'erreurs et de délais
+2.3 Digitalisation
+La digitalisation du processus achat est une priorité stratégique pour les organisations souhaitant réduire leurs délais, leurs coûts opérationnels et leurs risques juridiques. Procura s'inscrit dans cette dynamique en proposant une digitalisation progressive, respectueuse des procédures existantes.
+2.4 Contraintes Actuelles
+Obligation d'hébergement local (on-premise) imposée par la réglementation
+Respect des procédures de commission d'ouverture des plis physiques
+Intégration obligatoire avec des ERP hétérogènes (SAP, Oracle, Sage, Dynamics, ERP propriétaires)
+Nécessité d'une auditabilité totale pour les contrôles internes et externes
+2.5 Opportunités
+Absence de solution locale dédiée Source-to-Contract
+Fort potentiel dans les secteurs : énergie, BTP, industrie, assurance, télécoms, secteur public
+Demande croissante de conformité réglementaire numérique
+Opportunité d'expansion vers d'autres marchés à fortes contraintes réglementaires
+
+3. Problématique
+3.1 Difficultés Rencontrées
+Les organisations font face à un triple défi : sécuriser les échanges avec les fournisseurs, garantir la traçabilité de l'ensemble du processus achat et s'intégrer aux systèmes existants sans disruption organisationnelle.
+3.2 Processus Manuel
+Le processus d'achat manuel génère des inefficiences majeures : délais importants dans la collecte des offres, risques de manipulation des données, impossibilité de prouver l'intégrité d'une offre en cas de litige et manque de visibilité en temps réel sur l'état d'avancement des consultations.
+3.3 Risques
+Risque de fuite des offres avant ouverture officielle
+Risque de manipulation des prix ou des données fournisseurs
+Risque juridique en l'absence de preuves horodatées et signées
+Risque d'audit : impossibilité de reconstituer le déroulement d'une consultation
+Risque de réputation en cas de contestation fournisseur
+3.4 Limites des Solutions Actuelles
+Solutions SaaS : hébergement hors territoire, non conformes réglementairement
+Modules ERP achat : trop généralistes, ne couvrent pas le Source-to-Contract sécurisé
+Solutions papier : aucune traçabilité numérique, coûts élevés, lenteurs
+Email : aucune sécurité, aucune traçabilité, aucun coffre-fort
+
+4. Objectifs du Projet
+4.1 Objectifs Métier
+Digitaliser l'ensemble du cycle Source-to-Contract
+Garantir la confidentialité des offres fournisseurs jusqu'à l'ouverture officielle
+Produire des preuves légales horodatées et signées pour chaque étape
+Respecter et formaliser numériquement les procédures de commission d'ouverture des plis
+Transmettre les données finales à l'ERP de manière sécurisée et structurée
+4.2 Objectifs Techniques
+Déployer une solution 100 % on-premise, sans dépendance cloud
+Implémenter une architecture en zones réseau séparées (DMZ / LAN)
+Sécuriser tous les flux par chiffrement TLS 1.3 et mTLS
+Intégrer un coffre-fort numérique basé sur le chiffrement AES-256 et HSM
+Implémenter l'horodatage RFC 3161 et la signature numérique pour la non-répudiation
+Connecter Procura aux principaux ERP du marché via API, CSV, XML, JSON
+4.3 Objectifs Stratégiques
+Positionner Procura comme la référence nationale du Source-to-Contract sécurisé
+Réduire le time-to-market d'un cycle d'appel d'offres de 30 à 50 %
+Permettre à l'organisation d'atteindre la conformité totale aux exigences d'audit
+Offrir une plateforme évolutive, extensible à de nouveaux modules sans refonte
+
+5. Périmètre du Projet
+5.1 Ce que Couvre Procura
+Expression du besoin interne et validation multi-niveaux
+Sélection des fournisseurs depuis le référentiel ERP (lecture seule)
+Création, validation, scellage et publication des RFQ
+Portail fournisseur sécurisé en DMZ pour le dépôt des offres
+Coffre-fort numérique : chiffrement, horodatage, intégrité des offres
+Gestion des deadlines et verrouillage automatique
+Ouverture numérique des plis avec commission physique
+Module commission : saisie des décisions, génération du PV numérique
+Analyse et comparaison structurée des offres
+Génération de l'output final normalisé
+Intégration ERP via connecteurs standardisés
+Module de communication collaborative post-décision (ticketing)
+Audit, traçabilité, archivage légal, monitoring, administration
+5.2 Ce que Procura ne Couvre Pas
+Procure-to-Pay (P2P) : bons de commande, réception, facturation, paiement
+Gestion comptable et financière
+Gestion des stocks et de la chaîne logistique
+Référentiel maître fournisseurs (géré exclusivement par l'ERP)
+Négociation contractuelle post-attribution
+Reporting financier et BI avancée
+
+6. Parties Prenantes
+
+PARTIE II — ÉTUDE FONCTIONNELLE
+
+7. Description du Processus Métier
+7.1 Workflow Global
+Le processus Procura s'articule en neuf grandes étapes séquentielles, chacune étant sécurisée, horodatée et traçable :
+Expression du Besoin : un département interne formalise son besoin via le portail Procura.
+Validation Interne : le département achat ou finance valide ou refuse la demande avec justification.
+Création de la RFQ : l'acheteur crée la Request for Quotation, associe les documents et sélectionne les fournisseurs depuis l'ERP.
+Publication : la RFQ est scellée (hash + signature HSM) et publiée sur le portail fournisseur en DMZ.
+Réception des Offres : les fournisseurs déposent leurs offres via le portail sécurisé. Les offres sont chiffrées et inaccessibles jusqu'à l'ouverture.
+Ouverture des Plis : à la date officielle, la commission procède à l'ouverture simultanée et sécurisée des offres.
+Commission d'Ouverture : la commission saisit ses décisions, les motifs et génère le PV numérique.
+Génération de l'Output Final : consolidation des données validées en un fichier structuré normalisé.
+Transmission ERP : l'output est transmis à l'ERP via connecteur sécurisé. Procura ne traite plus le dossier après cette étape.
+
+8. Cas d'Utilisation (Use Cases)
+8.1 Acheteur
+UC-ACH-01 : Consulter le tableau de bord des RFQ
+UC-ACH-02 : Créer une nouvelle RFQ à partir d'un besoin validé
+UC-ACH-03 : Sélectionner les fournisseurs depuis le référentiel ERP
+UC-ACH-04 : Paramétrer les dates, délais et critères de soumission
+UC-ACH-05 : Joindre les documents (cahier des charges, annexes)
+UC-ACH-06 : Valider et soumettre la RFQ pour publication
+UC-ACH-07 : Suivre l'état des invitations fournisseurs
+UC-ACH-08 : Consulter les offres après ouverture officielle
+UC-ACH-09 : Exporter les tableaux comparatifs
+UC-ACH-10 : Lancer la transmission ERP
+8.2 Demandeur
+UC-DEM-01 : Créer une expression de besoin
+UC-DEM-02 : Renseigner les champs structurés du formulaire
+UC-DEM-03 : Joindre des documents techniques internes
+UC-DEM-04 : Soumettre le besoin pour validation
+UC-DEM-05 : Suivre l'état de sa demande
+UC-DEM-06 : Consulter la décision de validation ou de refus
+8.3 Fournisseur
+UC-FOU-01 : Recevoir l'invitation RFQ par email sécurisé
+UC-FOU-02 : S'authentifier sur le portail fournisseur
+UC-FOU-03 : Consulter les documents de la RFQ
+UC-FOU-04 : Déposer une offre au format autorisé (PDF, CSV, JPEG, PNG)
+UC-FOU-05 : Recevoir l'accusé de réception horodaté
+UC-FOU-06 : Suivre l'état de sa soumission
+UC-FOU-07 : Créer et répondre à un ticket post-décision
+8.4 Commission
+UC-COM-01 : S'authentifier pour l'ouverture des plis
+UC-COM-02 : Vérifier les conditions d'ouverture (date, état RFQ)
+UC-COM-03 : Initier l'ouverture officielle des plis
+UC-COM-04 : Consulter les offres déverrouillées en lecture seule
+UC-COM-05 : Saisir les observations et décisions de la commission
+UC-COM-06 : Valider le PV numérique
+UC-COM-07 : Archiver la séance et transmettre au module output
+8.5 Administrateur
+UC-ADM-01 : Gérer les utilisateurs et les rôles
+UC-ADM-02 : Configurer les workflows de validation
+UC-ADM-03 : Paramétrer les délais et les règles de consultation
+UC-ADM-04 : Superviser les services et l'état de la plateforme
+UC-ADM-05 : Gérer les templates de notification
+UC-ADM-06 : Administrer les connecteurs ERP
+UC-ADM-07 : Exporter les journaux d'audit
+UC-ADM-08 : Gérer les certificats et les clés PKI
+8.6 ERP
+UC-ERP-01 : Recevoir les données finales via connecteur sécurisé
+UC-ERP-02 : Retourner l'accusé de réception à Procura
+UC-ERP-03 : Exposer le référentiel fournisseurs en lecture seule à Procura
+
+9. Rôles & Permissions (RBAC Complet)
+
+10. Exigences Fonctionnelles
+10.1 Module Expression du Besoin
+10.2 Module Référentiel Fournisseur
+10.3 Module RFQ & Publication
+10.4 Module Portail Fournisseur & Dépôt
+10.5 Modules Commission, Analyse & Output
+
+11. Exigences Non Fonctionnelles
+
+PARTIE III — ARCHITECTURE FONCTIONNELLE
+
+12. Vue d'Ensemble de la Plateforme
+12.1 Architecture Métier
+Procura est organisé autour de vingt-deux modules fonctionnels et techniques qui couvrent l'intégralité du cycle Source-to-Contract. Ces modules sont répartis en trois grandes zones : le réseau interne (LAN), la zone démilitarisée (DMZ) et les systèmes d'intégration externes.
+12.2 Zones Réseau
+12.3 Diagramme d'Architecture Globale
+Le flux global de Procura s'articule comme suit :
+Les fournisseurs accèdent au portail via Internet, filtré par le Reverse Proxy / WAF en DMZ.
+Les offres déposées sont traitées, analysées et scellées en DMZ avant d'être transmises au LAN via un pull sécurisé.
+Les utilisateurs internes (acheteurs, commission, demandeurs) accèdent à Procura depuis le LAN uniquement.
+Procura communique avec l'ERP, l'Active Directory, le SIEM et les services PKI via des connecteurs sécurisés internes.
+
+13. Modules Fonctionnels
+Procura est composé de vingt-deux modules. Chacun est décrit en détail dans la Partie IV (Architecture Technique). Voici la cartographie fonctionnelle :
+
+PARTIE IV — ARCHITECTURE TECHNIQUE
+
+14. Architecture Générale
+14.1 Principe Fondamental
+Procura est déployé exclusivement dans l'infrastructure du client. Aucune donnée métier n'est hébergée sur un cloud public. Chaque composant possède une responsabilité clairement définie. Toutes les communications sont sécurisées et authentifiées. L'architecture respecte le principe Defense in Depth.
+14.2 Séparation des Zones Réseau
+L'architecture est découpée en cinq zones réseau distinctes :
+Zone Internet : accès fournisseurs uniquement, filtré par le Reverse Proxy / WAF
+Zone DMZ : portail fournisseur, dépôt sécurisé, sandbox d'analyse
+Zone LAN Procura : serveur applicatif, base de données, modules métier
+Zone LAN ERP : connexion via API sécurisée, lecture seule pour le référentiel fournisseur
+Zone LAN Administration : Active Directory, PKI, HSM, SIEM, SMTP
+14.3 Flux de Communication
+
+Module 1 — Architecture Générale & Déploiement
+Objectif
+Définir l'architecture technique globale de Procura afin de garantir un déploiement 100 % On-Premise, une séparation stricte entre les zones internes et externes, une haute disponibilité et une forte résilience, une intégration sécurisée avec les systèmes existants et une architecture modulaire, évolutive et maintenable.
+Composants Techniques
+Contrôles de Sécurité
+Déploiement exclusivement On-Premise
+Segmentation réseau : Internet / DMZ / LAN avec firewalls inter-zones
+Chiffrement TLS sur tous les flux, mTLS entre services critiques
+Chiffrement des données au repos : AES-256
+Sauvegardes automatiques, chiffrées et testées régulièrement
+Architecture Zero Trust entre composants
+Gestion centralisée des secrets via Vault
+Plan de Reprise d'Activité (PRA) et Plan de Continuité d'Activité (PCA)
+
+Module 2 — Gestion des Utilisateurs & Accès
+Objectif
+Permettre une gestion centralisée et sécurisée des utilisateurs, garantissant une authentification forte, une gestion fine des rôles (RBAC), une séparation stricte des responsabilités et une traçabilité complète des accès.
+Architecture Fonctionnelle
+L'identité de chaque utilisateur est centralisée dans l'IAM (Active Directory / LDAP / Keycloak). Le moteur RBAC contrôle l'accès à chaque module selon le rôle attribué. Toute action est liée à une identité authentifiée et journalisée.
+Flux de Gestion des Accès
+Authentification via Active Directory / LDAP / SSO (SAML 2.0 / OpenID Connect)
+Chargement du profil utilisateur : identité, département, fonction, rôles
+Attribution automatique des permissions associées au rôle
+Contrôle d'accès avant chaque action (consultation, création, validation)
+Gestion des sessions : chiffrées, expiration automatique, déconnexion forcée si anomalie
+Journalisation complète : connexion, déconnexion, échecs, changements de rôle
+Mesures de Sécurité
+MFA optionnel ou obligatoire selon politique de l'organisation
+Principe du moindre privilège (Least Privilege)
+Séparation des rôles administratifs et métiers
+Blocage temporaire après plusieurs échecs d'authentification
+Détection des comportements anormaux via SIEM
+Journalisation immuable centralisée dans le SIEM
+
+Module 3 — Expression du Besoin (Interne)
+Objectif
+Permettre aux équipes internes d'exprimer, formaliser et valider un besoin d'achat de manière structurée, traçable et conforme, en standardisant les informations et en préparant la RFQ de façon sécurisée.
+Flux Fonctionnel
+Initiation du besoin : accès au portail Procura interne, authentification IAM, sélection du type de besoin, attribution d'un ID unique
+Saisie structurée : formulaire guidé avec champs normalisés (description, objectif, périmètre, quantités, budget indicatif, contraintes)
+Ajout de pièces jointes internes (notes techniques, spécifications, schémas)
+Versioning : chaque modification crée une nouvelle version avec historique complet
+Workflow de validation interne : circuit configurable (manager, achat, finance, technique)
+Contrôles de conformité : vérification politique achat, seuils budgétaires, séparation des rôles
+Validation finale : horodatage final, signature logique interne
+Préparation RFQ : extraction des données structurées, masquage des informations sensibles
+Gouvernance
+Accès interne uniquement (LAN) — aucune exposition externe
+Versioning non désactivable — chaque modification est tracée
+Workflow de validation obligatoire — aucun besoin ne devient RFQ sans validation formelle
+Initiateur et valideur sont des rôles séparés (séparation des pouvoirs)
+
+Module 4 — Référentiel Fournisseur
+Objectif
+Permettre la pré-sélection des fournisseurs depuis le référentiel ERP (en lecture seule) dans le contexte d'une consultation / RFQ, sans duplication ni gestion de données fournisseurs dans Procura.
+Principe
+L'ERP est l'unique source de vérité fournisseur
+Procura ne crée, ne modifie et ne supprime aucun fournisseur
+Les données fournisseurs sont consommées en lecture seule via API sécurisée
+Mise en cache temporaire avec TTL configurable
+La sélection est contextuelle à une RFQ et traçable
+Composants
+
+Module 5 — Lancement RFQ & Publication
+Objectif
+Permettre aux équipes achats de créer, valider et publier des RFQ de manière centralisée, sécurisée et traçable, avec une diffusion contrôlée et équitable auprès des fournisseurs.
+Flux de Publication
+Création de la RFQ en mode brouillon (périmètre, dates, critères, formats autorisés, documents)
+Validation interne configurable (achats, juridique, finance)
+Scellage : génération d'un RFQ ID unique, calcul de hash global (métadonnées + documents), signature HSM, horodatage légal RFC 3161
+Publication contrôlée LAN → DMZ en lecture seule
+Accès fournisseur via HTTPS TLS 1.3 avec authentification
+Ouverture de la fenêtre de dépôt avec Submission Context ID
+Clôture automatique : blocage des dépôts, scellage de la liste des soumissions, PV de clôture
+Sécurité
+RFQ scellée avant publication (hash + signature HSM)
+Publication en lecture seule — aucune logique métier sensible exposée en DMZ
+Accès fournisseur strictement limité aux RFQ autorisées
+Formats de dépôt explicitement définis par RFQ
+Clôture automatique sans intervention humaine
+
+Module 6 — Portail Fournisseur (Externe — DMZ)
+Objectif
+Mettre à disposition des fournisseurs un portail externe sécurisé pour recevoir les invitations RFQ, accéder aux documents, déposer leurs offres, suivre leurs soumissions et centraliser les échanges post-décision.
+Flux Fournisseur
+Réception de l'invitation par email sécurisé (lien unique traçable)
+Authentification : HTTPS TLS 1.3, compte fournisseur + MFA ou certificat client (mTLS)
+Tableau de bord fournisseur : RFQ ouvertes, clôturées, statuts
+Consultation des documents RFQ (lecture seule, traçabilité des téléchargements)
+Dépôt de l'offre via module Dépôt Sécurisé (DMZ)
+Confirmation de dépôt : horodatage, identifiant, statut "Offre déposée"
+Module de communication post-décision (ticketing structuré)
+Architecture DMZ
+
+Module 7 — Dépôt Sécurisé des Offres Fournisseurs
+Objectif
+Permettre aux fournisseurs de déposer leurs offres sous différents formats autorisés (PDF, CSV, JPEG, PNG, etc.) avec une protection totale du réseau interne, une intégrité juridique du document soumis et une conformité totale aux exigences réglementaires.
+Flux de Traitement des Offres
+Dépôt sécurisé via HTTPS TLS 1.3 + mTLS — vérification extension, MIME type, magic bytes, conformité RFQ
+Détection et classification du type réel de fichier (indépendamment de l'extension)
+Stockage en quarantaine chiffrée (DMZ) — aucune exposition vers le LAN
+Analyse statique : PDF (scripts, objets actifs), CSV (injections), images (métadonnées, payloads)
+Scan antivirus multi-moteur : ClamAV + moteur commercial (résultat : CLEAN / SUSPICIOUS / MALICIOUS)
+Analyse dynamique en sandbox : exécution contrôlée dans VM isolée, surveillance comportementale, destruction de l'environnement après analyse
+Décision de sécurité : CLEAN → scellage, SUSPICIOUS → revue sécurité, MALICIOUS → isolement + alerte SOC
+Scellage : SHA-256 + signature HSM + horodatage RFC 3161
+Archivage WORM immuable
+Transfert sécurisé vers LAN (Pull Only) avec vérification intégrité
+Accusé de réception signé au fournisseur (hash + timestamp + identifiant)
+Composants Clés
+
+Module 8 — Horodatage & Preuve Légale
+Objectif
+Garantir la valeur probante de chaque opération dans Procura en assurant un horodatage fiable, une preuve d'intégrité des documents et une non-répudiation conforme aux exigences réglementaires.
+Flux de Génération des Preuves
+Réception d'un événement critique (dépôt fournisseur, validation RFQ, ouverture des plis, PV, export)
+Calcul d'empreinte SHA-256 du document + génération UUID
+Horodatage RFC 3161 synchronisé via NTP (précision milliseconde)
+Signature via PKI / HSM avec association du certificat
+Génération d'une preuve complète : UUID, hash, timestamp, signature, identifiant document
+Archivage WORM de la preuve
+Consultation possible par les modules autorisés : vérification intégrité, authenticité, date
+Infrastructure
+
+Module 9 — Gestion des Deadlines & Verrouillage
+Objectif
+Piloter automatiquement toutes les échéances des consultations afin de garantir le respect strict des délais, d'empêcher toute modification après expiration et d'assurer une équité parfaite entre les fournisseurs.
+Flux
+Création des échéances lors de la publication de la RFQ (début, fin, fuseau horaire)
+Activation automatique du timer à la publication
+Suivi en temps réel : calcul permanent du temps restant, alertes automatiques
+À expiration : verrouillage immédiat du portail, arrêt des uploads et des modifications
+Gestion des exceptions : prolongation ou annulation possible uniquement par administrateur autorisé avec journalisation
+Contrôles
+Horloge synchronisée via NTP — validation serveur uniquement (pas de confiance client)
+Verrouillage automatique sans intervention humaine
+Aucun dépôt tardif accepté — rejet automatique après deadline
+Toute modification d'une échéance publiée est journalisée et traçable
+
+Module 10 — Audit & Traçabilité
+Objectif
+Garantir une traçabilité exhaustive et inviolable de l'ensemble des opérations réalisées dans Procura afin de répondre aux exigences d'audit, de conformité et de gouvernance.
+Flux d'Audit
+Chaque action métier génère automatiquement un événement d'audit
+Collecte : utilisateur, action, module, date, IP, session
+Signature des logs (hash)
+Archivage sécurisé immuable
+Consultation multi-critères : utilisateur, RFQ, fournisseur, période, module
+Export des journaux d'audit en PDF, CSV, JSON
+Composants
+
+Module 11 — Ouverture des Plis Numérique
+Objectif
+Permettre à la Commission d'Ouverture des Plis de procéder à l'ouverture officielle des offres déposées dans Procura, en respectant strictement les procédures existantes. Le module ne remplace pas la commission physique ; il fournit un environnement numérique sécurisé pour l'ouverture simultanée et la journalisation complète.
+Flux d'Ouverture
+Vérification automatique des conditions d'ouverture (date limite dépassée, état RFQ, absence de prolongation active)
+Authentification des membres de la commission avec vérification des rôles (RBAC + MFA)
+Le président de commission initie l'ouverture officielle
+Déverrouillage contrôlé : suppression du verrou logique, documents consultables en lecture seule
+Consultation simultanée par tous les membres autorisés
+Contrôle des documents : vérification signatures, horodatages, intégrité
+Clôture de la séance et archivage de la session
+Contrôles de Sécurité
+Ouverture impossible avant la deadline — contrôle automatique strict
+Lecture seule uniquement — aucune modification possible
+Déverrouillage unique — non réversible sans traçabilité
+Vérification des signatures et horodatages de chaque offre
+Journalisation complète de la séance d'ouverture
+
+Module 12 — Commission d'Ouverture
+Objectif
+Fournir un espace numérique permettant à la Commission d'Ouverture d'enregistrer officiellement les décisions, de produire le Procès-Verbal numérique et de conserver l'ensemble des décisions dans Procura. Le module n'automatise jamais la décision.
+Flux
+Création automatique de la séance après ouverture des plis
+Saisie des observations générales et de conformité administrative
+Enregistrement des décisions : offre retenue, offres rejetées, motifs, observations
+Validation interne et confirmation du président
+Génération automatique du PV numérique en PDF (numérotation, format officiel)
+Signature électronique optionnelle + horodatage
+Archivage du PV associé à la RFQ
+
+Module 13 — Analyse & Structuration des Offres
+Objectif
+Permettre aux membres de la commission de consulter, organiser et comparer les informations essentielles des offres reçues. Le module assiste la lecture et la comparaison mais ne réalise jamais le choix automatique du fournisseur.
+Flux d'Analyse
+Chargement des offres validées avec vérification d'intégrité
+Extraction : fournisseurs, articles, quantités, prix, délais, références
+Structuration : uniformisation des formats, normalisation, modèle commun
+Comparaison : par fournisseur, par article, par prix, par quantités, par délais
+Génération des tableaux comparatifs : synthétique, détaillé, vue fournisseur, vue article
+Export : PDF, Excel, CSV — transmission à la commission
+
+Module 14 — Génération Output Final
+Objectif
+Consolider l'ensemble des informations validées par la Commission d'Ouverture afin de produire un jeu de données unique, cohérent et exploitable, destiné à être transmis au système ERP. Ce module constitue la dernière étape métier de Procura.
+Flux de Génération
+Chargement des données validées : PV de Commission, offres retenues, informations RFQ
+Consolidation : RFQ ID, fournisseur retenu, articles, quantités, prix, devise, délais, conditions particulières, références documentaires
+Contrôle de cohérence : champs obligatoires, montants, quantités, unicité fournisseur
+Normalisation : UTF-8, formats numériques, monétaires, dates/heures, nomenclature standard
+Génération du fichier output : JSON, XML, CSV avec métadonnées techniques
+Validation finale : intégrité, hash SHA-256, identifiant unique d'export
+Stockage sécurisé et mise à disposition pour l'intégration ERP
+
+Module 15 — Intégration ERP (Sortie)
+Objectif
+Assurer le transfert sécurisé des données finales vers le système ERP de l'organisation afin de permettre la poursuite automatique du processus d'approvisionnement. Ce module constitue le point de passage entre Procura et l'écosystème informatique de l'entreprise.
+Modes d'Intégration
+Formats de Sortie
+CSV : format universel, compatible avec tous les ERP
+XML : SAP IDoc, Oracle XML Gateway
+JSON : API REST modernes
+Formats propriétaires : selon connecteur ERP client
+Contrôles
+Validation complète des données avant toute transmission
+Vérification de l'accusé de réception ERP
+Retry automatique en cas d'échec temporaire
+File d'attente persistante si ERP indisponible
+Journalisation complète de chaque transmission
+
+Module 16 — Communication Collaborative (Hors-ERP)
+Objectif
+Permettre aux collaborateurs et aux fournisseurs concernés d'échanger de manière structurée, centralisée et sécurisée après la décision de la Commission, via un système de ticketing — sans messagerie instantanée ni email dispersé.
+Fonctionnement
+Création d'un ticket lié à une RFQ ou à un fournisseur
+Catégorisation : question administrative, demande documentaire, clarification technique, livraison documentaire
+Attribution : acheteur, gestionnaire RFQ, administrateur, fournisseur
+Échanges : chaque réponse horodatée et signée, définitive après publication
+Gestion des pièces jointes via le processus sécurisé de dépôt Procura
+Suivi du statut : Ouvert / En attente fournisseur / En attente société / Résolu / Fermé
+Clôture définitive et archivage complet
+
+Module 17 — Notifications & Messagerie Système
+Objectif
+Centraliser l'ensemble des notifications émises par Procura. Ce module est transversal : tous les autres modules déclenchent leurs notifications via ce service centralisé, sans logique d'envoi directe.
+Événements Déclencheurs
+
+Module 18 — Administration & Paramétrage
+Objectif
+Permettre aux administrateurs de configurer, superviser et maintenir Procura sans modifier le code de l'application. Toute la configuration est centralisée, versionnée et modifiable sans redéploiement.
+Périmètre de Configuration
+Workflows : étapes d'approbation, circuits RFQ, règles de transition
+Délais : délais fournisseurs, délais internes, prolongations autorisées
+Rôles : profils utilisateurs, permissions, délégations, héritages
+Paramètres système : langues, fuseaux horaires, formats de dates et monétaires
+Communication : templates emails, notifications, logos, identité graphique
+Supervision : état des services, santé plateforme, ressources, licences
+Sécurité Administration
+MFA obligatoire pour les administrateurs
+RBAC strict — accès administration séparé des accès métier
+Versionnement de toute modification de paramètre
+Double validation pour les paramètres critiques
+Chiffrement des secrets via Vault
+
+Module 19 — Sécurité Globale
+Objectif
+Assurer la protection globale de la plateforme Procura contre les menaces internes et externes, en garantissant la confidentialité, l'intégrité et la disponibilité des données. La sécurité est intégrée by design à chaque composant.
+Principes Fondateurs
+Security by Design : la sécurité est intégrée dès la conception
+Zero Trust : aucun composant n'est implicitement fiable
+Défense en Profondeur : plusieurs couches de contrôle
+Least Privilege : chaque composant et utilisateur a le minimum de droits nécessaires
+Mesures de Sécurité Transversales
+
+Module 20 — Archivage & Conservation Légale
+Objectif
+Garantir la conservation, l'intégrité et la disponibilité des documents, preuves et journaux générés par Procura pendant toute leur durée légale de conservation.
+Politique d'Archivage
+Composants
+
+Module 21 — Monitoring & Exploitation
+Objectif
+Assurer la supervision continue, l'exploitation opérationnelle et la disponibilité de Procura afin de garantir un fonctionnement optimal, une détection rapide des incidents et une continuité de service.
+Indicateurs Supervisés
+Disponibilité des services Procura (application, API, base de données, DMZ)
+Utilisation CPU, mémoire, stockage, bande passante
+Temps de réponse des API et des pages
+État des connecteurs ERP
+État des services d'authentification
+Réussite des sauvegardes automatiques
+File d'attente des messages (RabbitMQ)
+Stack Technique Monitoring
+Plan de Reprise d'Activité (PRA)
+Panne serveur → bascule vers serveur secondaire (si haute disponibilité configurée)
+Défaillance base de données → restauration depuis sauvegarde vérifiée
+Coupure réseau → bascule selon architecture client
+Indisponibilité ERP → mise en file d'attente des synchronisations
+Saturation ressources → alerte monitoring + montée en capacité
+Incident critique → activation du PRA + analyse post-incident
+
+Module 22 — Documentation & Support
+Objectif
+Mettre à disposition l'ensemble de la documentation fonctionnelle et technique de Procura ainsi que les outils nécessaires au support des utilisateurs, des administrateurs et des équipes d'exploitation.
+Types de Documentation
+Gestion du Support
+Système de ticketing dédié avec numérotation, catégorie, priorité et statut
+Traçabilité complète : ouverture, diagnostic, résolution, clôture, historique
+Capitalisation : enrichissement de la base documentaire après chaque résolution
+Amélioration continue : analyse des incidents récurrents et temps moyen de résolution
+
+PARTIE V — DONNÉES
+
+19. Modèle de Données
+19.1 Entités Principales
+
+20. Dictionnaire de Données (Entités Clés)
+20.1 Table : rfqs
+20.2 Table : submissions
+
+21. Gestion Documentaire
+21.1 Types de Documents Gérés
+21.2 Politique de Versioning
+Chaque document généré par Procura est versionné avec un numéro de version incrémental
+Aucune version ne peut être supprimée — uniquement archivée
+La version active est clairement identifiée
+L'historique complet des versions est consultable par les rôles autorisés
+
+PARTIE VI — INTERFACES
+
+22. Interface Utilisateur Interne
+22.1 Principes UX
+L'interface utilisateur de Procura est conçue pour être simple, intuitive et adaptée à des utilisateurs métiers non nécessairement techniques. Elle respecte les principes suivants :
+Navigation claire et hiérarchisée par module et par rôle
+Tableau de bord personnalisé selon le profil de l'utilisateur
+Formulaires guidés avec aide contextuelle et validation en temps réel
+Feedback immédiat sur chaque action (succès, erreur, confirmation)
+Design responsive adapté aux écrans desktop et tablette
+Accessibilité : compatibilité WCAG 2.1 niveau AA
+Multilinguisme : français (primaire), arabe et anglais
+22.2 Pages Principales
+22.3 Composants UI
+Framework frontend : React.js avec TypeScript
+Design system : composants standardisés (formulaires, tableaux, modales, notifications)
+State management : Redux / Context API
+Communication API : Axios avec intercepteurs d'authentification
+Gestion des droits front : affichage conditionnel selon le rôle RBAC
+
+23. Portail Fournisseur
+23.1 Parcours Fournisseur Complet
+Réception de l'invitation par email avec lien sécurisé et traçable
+Accès au portail via navigateur web (Chrome, Firefox, Edge)
+Authentification : identifiants + MFA ou certificat client
+Tableau de bord : RFQ auxquelles le fournisseur est invité, statuts, délais
+Consultation et téléchargement des documents de la RFQ
+Dépôt de l'offre : sélection du fichier, validation checklist, confirmation
+Accusé de réception instantané avec horodatage et identifiant de dépôt
+Suivi de statut en temps réel
+Après décision : accès au module de ticketing post-attribution
+23.2 Contraintes de Conception
+Interface simple et accessible, sans formation préalable
+Instructions claires sur les formats autorisés et les délais
+Assistance au dépôt : checklist de complétude avant validation
+Aucun accès aux offres des autres fournisseurs
+Déconnexion automatique après inactivité
+Compatible avec les connexions internet à faible débit
+
+24. Back Office Administration
+24.1 Fonctionnalités Administration
+Gestion complète des utilisateurs : création, modification, désactivation, réinitialisation
+Configuration des workflows : étapes, valideurs, règles de transition
+Paramétrage des délais et des règles de consultation
+Gestion des templates de notification et de communication
+Supervision en temps réel : état des services, métriques, alertes
+Gestion des connecteurs ERP : configuration, test, journalisation
+Administration des certificats et des clés PKI
+Export et consultation des journaux d'audit
+
+PARTIE VII — INTÉGRATION
+
+25. Intégration ERP
+25.1 ERP Supportés
+25.2 Données Échangées avec l'ERP
+Données lues depuis l'ERP (lecture seule) :
+Référentiel fournisseurs : identifiant, raison sociale, catégories, statut, coordonnées
+Données de référence : articles, codes produits, unités, devises
+Données transmises vers l'ERP (écriture finale) :
+Fournisseur retenu : identifiant ERP, raison sociale
+Articles et lignes de commande : code article, désignation, quantité, prix unitaire, devise
+Conditions : délai de livraison, conditions particulières, date de l'attribution
+Références : RFQ ID, numéro PV, identifiant export Procura
+25.3 Sécurité des Échanges ERP
+Canal TLS 1.3 avec authentification mutuelle (mTLS)
+API Keys ou OAuth2 selon les capacités de l'ERP
+Validation des données avant chaque transmission
+Accusé de réception de l'ERP vérifié et enregistré
+File d'attente persistante pour les cas d'indisponibilité ERP
+Journalisation complète de chaque échange (heure, résultat, durée, identifiant)
+
+26. Services Externes
+
+PARTIE VIII — SÉCURITÉ
+
+27. Politique de Sécurité
+27.1 Authentification
+Procura applique une politique d'authentification forte sur l'ensemble des accès, internes et externes :
+Authentification centralisée via Active Directory / LDAP / Keycloak
+Support SSO (SAML 2.0 / OpenID Connect) pour l'intégration avec l'IAM existant
+MFA (Multi-Factor Authentication) : optionnel ou obligatoire selon le profil (obligatoire pour les administrateurs et les membres de la commission)
+Sessions sécurisées : cookies HttpOnly et Secure, expiration automatique après inactivité
+Blocage temporaire après 5 échecs d'authentification consécutifs
+Pour les fournisseurs : compte dédié + MFA ou certificat client (mTLS)
+Journalisation de toutes les authentifications réussies et échouées
+27.2 Autorisation
+Le contrôle d'accès de Procura repose exclusivement sur le modèle RBAC (Role-Based Access Control) :
+Chaque utilisateur possède un rôle définissant précisément ses droits
+Les permissions sont vérifiées à chaque requête API (backend) et au niveau UI (frontend)
+Aucun accès implicite : tout ce qui n'est pas explicitement autorisé est refusé
+Séparation stricte des rôles : un même utilisateur ne peut pas être initiateur et valideur du même besoin
+Les fournisseurs n'ont accès qu'à leurs propres RFQ, jamais aux RFQ des autres
+Les membres de la commission n'ont accès aux offres qu'après l'ouverture officielle
+27.3 Chiffrement
+27.4 Protection des Applications
+Procura est protégé contre les vulnérabilités OWASP Top 10 :
+
+28. Conformité
+28.1 Loi 23-12 (Loi sur la Cybersécurité — Algérie)
+Notification obligatoire des incidents de sécurité : Procura intègre un système d'alerte et de rapport d'incidents
+Respect des mesures de sécurité imposées aux opérateurs d'importance vitale
+Journalisation des événements de sécurité conformément aux exigences de la loi
+Coopération avec les autorités compétentes en cas d'incident majeur
+28.2 Loi 18-07 (Protection des Données Personnelles — Algérie)
+Hébergement exclusivement sur le territoire national (on-premise chez le client)
+Aucune transmission de données personnelles vers l'étranger
+Minimisation des données : Procura ne collecte que les données strictement nécessaires
+Droit à l'information des personnes concernées
+Sécurité des données personnelles : chiffrement, contrôle d'accès, traçabilité
+Conservation limitée à la durée légale et suppression certifiée en fin de conservation
+28.3 Réglementation des Marchés Publics
+Respect de la procédure de commission d'ouverture des plis physique (Procura ne la remplace pas)
+Traçabilité légale de chaque étape de la consultation
+Égalité de traitement des fournisseurs : accès simultané et équitable aux RFQ
+Non-modification des offres après dépôt : coffre-fort numérique et WORM
+Conservation des dossiers conformément aux délais réglementaires
+28.4 Normes Internationales de Référence
+
+29. Gestion des Risques
+29.1 Risques Cyber
+29.2 Risques Métier
+29.3 Risques Techniques
+
+PARTIE IX — EXPLOITATION
+
+30. Déploiement
+30.1 Prérequis Infrastructure
+30.2 Processus d'Installation
+Préparation de l'infrastructure : installation OS, hardening, configuration réseau
+Déploiement des services Procura via Docker Compose ou Kubernetes
+Configuration de la base de données PostgreSQL avec chiffrement TDE
+Déploiement du portail fournisseur en DMZ avec Nginx + ModSecurity
+Configuration PKI interne et intégration HSM
+Intégration Active Directory / LDAP
+Configuration des connecteurs ERP
+Configuration SIEM (Wazuh / ELK)
+Tests de validation pré-production
+Mise en production avec PV d'acceptance
+30.3 Configuration
+La configuration de Procura est entièrement réalisable via l'interface d'administration sans modification du code source. Les paramètres sont versionnés et sauvegardés automatiquement.
+30.4 Mise en Production
+La mise en production suit une procédure validée incluant :
+Tests de charge et de performance
+Tests de sécurité (scan de vulnérabilités, test d'intrusion)
+Tests d'intégration ERP end-to-end
+Formation des administrateurs et des utilisateurs clés
+PV de recette et d'acceptance
+Activation du monitoring et des alertes
+
+31. Supervision
+31.1 Tableau de Bord Opérationnel
+Le tableau de bord de supervision centralise en temps réel :
+État de chaque service Procura (vert / orange / rouge)
+Utilisation des ressources : CPU, RAM, stockage, bande passante
+Temps de réponse moyen des API
+Nombre d'utilisateurs connectés simultanément
+État des connecteurs ERP
+État de la file d'attente des messages
+Dernières alertes et incidents
+31.2 Alertes
+
+32. Sauvegarde
+32.1 Politique de Sauvegarde
+32.2 Tests de Restauration
+Tests de restauration complète : trimestriels
+Tests de restauration partielle (base de données) : mensuels
+Documentation des résultats de chaque test
+Objectifs : RTO (Recovery Time Objective) < 4 heures, RPO (Recovery Point Objective) < 24 heures
+
+33. Maintenance
+33.1 Maintenance Corrective
+Gestion des incidents via le système de ticketing interne
+Niveau 1 : support utilisateur (guide, FAQ, documentation)
+Niveau 2 : diagnostic et résolution par l'équipe technique Procura
+Niveau 3 : correctif de code et mise à jour d'urgence
+SLA : incidents critiques résolus en moins de 4 heures
+33.2 Maintenance Préventive
+Mises à jour de sécurité : appliquées sous 72 heures pour les vulnérabilités critiques
+Mises à jour système : planifiées hors heures ouvrées avec notification préalable
+Rotation des certificats : automatisée avec alertes préventives
+Audit de sécurité : semestriel avec rapport de résultats
+Test d'intrusion : annuel par équipe externe
+Revue des accès et des rôles : trimestrielle
+33.3 Maintenance Évolutive
+Nouvelles versions via rolling update sans interruption de service
+Rétrocompatibilité garantie sur 2 versions majeures
+Notes de version documentées et communiquées aux administrateurs
+Rollback possible vers la version précédente en cas de régression
+
+PARTIE X — QUALITÉ
+
+34. Plan de Tests
+34.1 Tests Unitaires
+Couverture cible : 80 % minimum du code backend
+Framework : Jest (Node.js / TypeScript)
+Chaque fonction métier dispose de tests unitaires dédiés
+Les tests sont exécutés automatiquement à chaque commit (CI/CD)
+34.2 Tests d'Intégration
+34.3 Tests de Sécurité
+Scan OWASP ZAP : sur le portail fournisseur (DMZ) et l'interface interne (LAN)
+Test de brute-force : vérification du blocage après 5 tentatives
+Test d'injection SQL / CSV : sur tous les formulaires et API
+Test de contournement RBAC : vérification de l'impossibilité d'accéder à un module non autorisé
+Test de coffre-fort : vérification de l'impossibilité d'accéder aux offres avant la deadline
+Test d'intégrité : vérification que la modification d'une offre invalide son hash
+Test de scan sandbox : dépôt d'un fichier EICAR de test et vérification de l'isolation
+Test de TLS : vérification que seul TLS 1.2/1.3 est accepté
+34.4 Tests Utilisateurs (UAT)
+Les tests d'acceptation utilisateur (UAT) sont réalisés avec des représentants de chaque profil :
+34.5 Tests de Charge et de Performance
+Scénario 1 : 500 utilisateurs simultanés — temps de réponse < 2 secondes
+Scénario 2 : 100 RFQ actives simultanées — sans dégradation de performance
+Scénario 3 : 50 dépôts d'offres simultanés — traitement complet < 30 secondes
+Scénario 4 : Montée en charge progressive jusqu'à 1 000 utilisateurs — seuil de saturation identifié
+Outil de test de charge : k6 / Apache JMeter
+
+35. Recette
+35.1 Procédure de Recette
+Exécution des tests d'intégration avec validation formelle par l'équipe technique
+Exécution des tests UAT avec validation par les utilisateurs clés
+Audit de sécurité pré-production (scan de vulnérabilités)
+Validation des exigences fonctionnelles (FR-001 à FR-036 vérifiées)
+Validation des exigences non fonctionnelles (performance, disponibilité, sécurité)
+Rédaction et signature du PV de recette
+Validation finale de l'acceptation par la direction
+35.2 Critères d'Acceptation
+100 % des cas d'utilisation critiques (P1) validés sans anomalie bloquante
+Temps de réponse moyen des pages < 2 secondes en charge nominale
+Aucune vulnérabilité OWASP critique ou haute non traitée
+Intégration ERP fonctionnelle et validée end-to-end
+Coffre-fort numérique validé : offres inaccessibles avant deadline
+Horodatage RFC 3161 validé sur au moins 10 opérations de test
+Archivage WORM validé : aucune modification possible après archivage
+
+PARTIE XI — GESTION DU PROJET
+
+36. Roadmap
+36.1 Phase MVP (Mois 1-4)
+Objectif : valider le cœur fonctionnel de Procura sur un périmètre restreint.
+Module 1 : Architecture & Déploiement — infrastructure de base
+Module 2 : Gestion des utilisateurs & RBAC
+Module 3 : Expression du besoin simplifié
+Module 5 : RFQ basique avec publication
+Module 6 : Portail fournisseur (accès, consultation, dépôt PDF)
+Module 7 : Dépôt sécurisé (chiffrement + scan AV)
+Module 9 : Gestion des deadlines & verrouillage automatique
+Module 10 : Audit & traçabilité de base
+Module 17 : Notifications email basiques
+36.2 Phase V1 (Mois 5-8)
+Objectif : compléter l'ensemble du cycle S2C avec commission et output ERP.
+Module 4 : Référentiel fournisseur (intégration ERP read-only)
+Module 8 : Horodatage RFC 3161 et HSM
+Module 11 : Ouverture des plis numérique
+Module 12 : Commission d'ouverture et génération PV
+Module 13 : Analyse et tableaux comparatifs
+Module 14 : Génération output final
+Module 15 : Intégration ERP (connecteurs SAP, Oracle, Sage)
+Module 18 : Administration & paramétrage complet
+Module 19 : Sécurité globale renforcée (WAF, sandbox, PKI)
+36.3 Phase V2 (Mois 9-12)
+Objectif : finaliser la plateforme avec modules collaboratifs et de gouvernance avancée.
+Module 16 : Communication collaborative (ticketing post-décision)
+Module 20 : Archivage légal et conservation (WORM)
+Module 21 : Monitoring & exploitation avancés (Prometheus, Grafana)
+Module 22 : Documentation & support
+Tests de charge, tests de sécurité, audit externe
+Optimisations performance et UX
+36.4 Phase V3 (Mois 13+)
+Objectif : évolutions fonctionnelles et multi-marchés.
+Support multi-entités et multi-sites
+Connecteurs ERP supplémentaires
+Module d'analyse avancée (BI, KPIs achats)
+Support de formats additionnels (e-procurement, PEPPOL)
+Certification ISO 27001
+Expansion vers de nouveaux marchés
+
+37. Planning
+
+38. Budget
+38.1 Postes de Coût Principaux
+38.2 Modèle Commercial
+Licence perpétuelle ou abonnement annuel selon préférence client
+Frais d'intégration ERP : selon la complexité du connecteur
+Formation initiale incluse dans le déploiement
+Contrat de maintenance et support annuel
+Modules optionnels : BI avancée, connecteurs spécifiques
+
+39. Gouvernance du Projet
+39.1 Organisation
+39.2 Matrice RACI
+39.3 Comités
+Comité de Pilotage : mensuel — suivi avancement, décisions stratégiques
+Comité Technique : hebdomadaire — revue technique, blocages, solutions
+Comité de Sécurité : à chaque livraison majeure — validation sécurité
+Revue de Sprint : bi-mensuelle — démonstration des fonctionnalités livrées
+
+PARTIE XII — ANNEXES
+
+40. Glossaire
+
+41. Références
+41.1 Textes Réglementaires
+Loi 18-07 du 10 juin 2018 relative à la protection des personnes physiques dans le traitement des données à caractère personnel
+Loi 23-12 du 7 août 2023 relative à la cybersécurité
+Décret présidentiel n° 15-247 portant réglementation des marchés publics et des délégations de service public (et modifications ultérieures)
+41.2 Normes et Standards
+ISO/IEC 27001:2022 — Systèmes de management de la sécurité de l'information
+ISO 9001:2015 — Systèmes de management de la qualité
+OWASP Top 10 (2021) — Principales vulnérabilités de sécurité applicative
+RFC 3161 — Internet X.509 PKI Time-Stamp Protocol (TSP)
+NIST Special Publication 800-53 Rev. 5 — Contrôles de sécurité et de confidentialité
+FIPS 140-2 / 140-3 — Exigences de sécurité pour les modules cryptographiques
+PKCS#11 — Cryptographic Token Interface Standard
+SAML 2.0 — Security Assertion Markup Language
+OpenID Connect 1.0 — Protocole d'authentification basé sur OAuth 2.0
+TLS 1.3 — RFC 8446
+
+42. Diagrammes UML
+Les diagrammes UML suivants sont fournis en annexe technique (fichiers séparés) :
+
+43. Maquettes UI
+Les maquettes d'interface utilisateur (wireframes et mockups) sont fournies en annexe visuelle (fichiers séparés) et couvrent :
+Tableau de bord acheteur (vue principale)
+Formulaire de création de RFQ (étapes guidées)
+Interface de sélection des fournisseurs
+Portail fournisseur : tableau de bord et formulaire de dépôt
+Interface d'ouverture des plis (commission)
+Module de saisie des décisions et génération du PV
+Tableau comparatif des offres
+Interface d'administration et de supervision
+
+44. Architecture Technique Complète — Récapitulatif des Schémas
+Les schémas d'architecture technique détaillés sont fournis en annexe (fichiers séparés) et comprennent :
+Architecture générale avec zones réseau (Internet / DMZ / LAN / ERP)
+Architecture de sécurité (Zero Trust, PKI, HSM, Vault)
+Architecture des données (PostgreSQL, MinIO, WORM, Redis)
+Architecture des flux de traitement des offres (du dépôt au scellage)
+Architecture de monitoring (Prometheus, Grafana, ELK, Wazuh)
+Architecture d'intégration ERP (connecteurs, formats, flux)
+
+45. Annexes Diverses
+45.1 Exemples d'Output Final
+Exemple de structure JSON d'un output final Procura :
+{
+  "export_id": "EXP-2024-001",
+  "rfq_id": "RFQ-2024-087",
+  "export_timestamp": "2024-10-15T10:30:00Z",
+  "supplier": {
+    "erp_id": "FOURN-0042",
+    "name": "Fournisseur ABC SARL"
+  },
+  "lines": [
+    {
+      "article_code": "ART-001",
+      "description": "Câble électrique HT",
+      "quantity": 500,
+      "unit": "ML",
+      "unit_price": 1250.00,
+      "currency": "DZD",
+      "delivery_delay": 30
+    }
+  ],
+  "pv_reference": "PV-2024-087",
+  "hash_sha256": "a3f8b2c1...",
+  "conditions": "Livraison franco de port"
+}
+45.2 Template d'Email d'Invitation Fournisseur
+Objet : Invitation à participer à la consultation [RFQ-XXXX] — [Intitulé de la consultation]
+Corps :
+Madame, Monsieur,
+Vous êtes invité(e) à participer à la consultation réference [RFQ-XXXX] lancée par [Nom de l'organisation].
+Accédez au portail sécurisé pour consulter les documents et déposer votre offre avant le [Date et heure limite].
+Lien d'accès sécurisé : [LIEN_UNIQUE_TRAÇABLE]
+Ce lien est personnel et ne peut être partagé. Il expire automatiquement après la date limite de dépôt.
+Cordialement,
+Le Département Achats
+45.3 Checklist de Déploiement
+Infrastructure serveurs configurée et durcie (hardening OS)
+Zones réseau séparées : DMZ, LAN, ERP, Administration
+Firewall configuré avec règles inter-zones validées
+Nginx + ModSecurity déployé en DMZ
+PostgreSQL déployé avec chiffrement TDE activé
+MinIO déployé avec chiffrement SSE-C
+HashiCorp Vault déployé et configuré
+HSM physique configuré et testé (signature, vérification)
+PKI interne configurée (CA racine, CA intermédiaire, certificats services)
+Active Directory / LDAP intégré et testé
+SIEM (Wazuh) configuré et réception des logs vérifiée
+NTP configuré et synchronisation vérifiée
+SMTP configuré et envoi d'emails test validé
+Connecteur ERP configuré et testé (lecture référentiel + transmission output)
+Sauvegardes automatiques configurées et premier test de restauration réussi
+Monitoring (Prometheus + Grafana) opérationnel avec alertes configurées
+Scan de vulnérabilités initial réalisé, résultats traités
+Formation administrateurs réalisée
+PV de mise en production signé
+
+— Fin du Cahier des Charges Officiel PROCURA —
+Version 1.0 — Document Confidentiel

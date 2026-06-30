@@ -1,0 +1,20 @@
+{
+  "name": "procura",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Procura - plateforme Source-to-Contract on-premise",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm --filter @procura/shared build && pnpm --parallel --filter @procura/api --filter @procura/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  }
+}

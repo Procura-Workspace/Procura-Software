@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx --yes pnpm@11.9.0 --filter @procura/web run typecheck)",
+      "Bash(npx --yes pnpm@11.9.0 --filter @procura/api run typecheck)",
+      "Bash(npx --yes pnpm@11.9.0 --filter @procura/web run build)",
+      "Bash(npx --yes pnpm@11.9.0 --filter @procura/api run build)"
+    ]
+  }
+}

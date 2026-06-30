@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: procura-postgres
+    environment:
+      POSTGRES_DB: procura
+      POSTGRES_USER: procura
+      POSTGRES_PASSWORD: procura_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - procura-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U procura -d procura"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: procura-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - procura-redis:/data
+
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: procura-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: procura_admin
+      MINIO_ROOT_PASSWORD: procura_dev_password_change_me
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - procura-minio:/data
+
+volumes:
+  procura-postgres:
+  procura-redis:
+  procura-minio:
