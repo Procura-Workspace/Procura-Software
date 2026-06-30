@@ -38,7 +38,7 @@ interface web complete, separation des roles, audit hash-chain et integration ER
 
 ```bash
 # 1. Installation
-pnpm install
+pnpm install   OR     npm install -g pnpm
 
 # 2. Build du package partage (schemas Zod)
 pnpm --filter @procura/shared build
