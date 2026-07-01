@@ -1,6 +1,8 @@
-import { Activity, AlertTriangle, CheckCircle2, Hash, ShieldCheck } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle2, Hash, ShieldCheck, Zap } from "lucide-react";
 import type { AppData } from "../types.js";
+import { procuraApi } from "../../api/client.js";
 import { Badge } from "../components/Badge.js";
+import { Button } from "../components/Button.js";
 import { EmptyState } from "../components/EmptyState.js";
 import { InfoBanner } from "../components/InfoBanner.js";
 import { PageHeader } from "../components/PageHeader.js";
@@ -17,6 +19,15 @@ export function AuditPage({ data }: { data: AppData }) {
         eyebrow="Module 10"
         title="Audit et tracabilite"
         description="Chaine d'evenements append-only, hash-chain, verification d'integrite."
+        actions={
+          <Button
+            icon={Zap}
+            tone="warning"
+            onClick={() => procuraApi.simulateBreach()}
+          >
+            Simuler une rupture
+          </Button>
+        }
       />
 
       <section className="metrics-grid compact">

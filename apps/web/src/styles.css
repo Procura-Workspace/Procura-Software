@@ -709,6 +709,11 @@ code {
   color: #ecfdf5;
 }
 
+.btn.tone-warning {
+  background: #b45309;
+  color: #fef3c7;
+}
+
 .btn.loading {
   opacity: 0.7;
   pointer-events: none;

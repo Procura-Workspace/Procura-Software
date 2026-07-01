@@ -267,7 +267,13 @@ export const procuraApi = {
   toggleUser: (id: string) => mockApi.toggleUser(readActor(), id),
 
   updateSettings: (input: Partial<PlatformSettings>) =>
-    mockApi.updateSettings(readActor(), input)
+    mockApi.updateSettings(readActor(), input),
+
+  // ---------- Dev / demo helpers ----------
+
+  simulateBreach: () => mockApi.simulateBreach(),
+
+  resetMockData: () => mockApi.resetData()
 };
 
 function createHashHex(input: string): string {

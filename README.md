@@ -36,19 +36,38 @@ interface web complete, separation des roles, audit hash-chain et integration ER
 
 ## Demarrage rapide
 
+### Mode maquette standalone (recommande pour explorer l'UI)
+
+Le front peut tourner **sans backend** : toutes les donnees et mutations sont gerees
+par la couche mock `apps/web/src/data/mockBackend.ts` (donnees seedees, chainage
+d'audit local, hash SHA-256, persistance `localStorage`, latence simulee, RBAC simule).
+C'est le mode recommande pour utiliser l'app comme maquette.
+
 ```bash
 # 1. Installation
-pnpm install   OR     npm install -g pnpm
+pnpm install
 
 # 2. Build du package partage (schemas Zod)
 pnpm --filter @procura/shared build
 
-# 3. Demarrer l'API
-pnpm --filter @procura/api dev          # http://127.0.0.1:8080
-
-# 4. Demarrer le front (autre terminal)
+# 3. Demarrer le front uniquement
 pnpm --filter @procura/web dev          # http://127.0.0.1:5173
 ```
+
+### Mode API connectee (backend reel)
+
+```bash
+# Terminal 1
+pnpm --filter @procura/api dev          # http://127.0.0.1:8080
+
+# Terminal 2
+VITE_API_URL=http://127.0.0.1:8080 pnpm --filter @procura/web dev
+```
+
+Quand `VITE_API_URL` pointe vers l'API reelle, le client delegue chaque appel a
+`fetch` au lieu du mock. La signature des fonctions reste identique — quand le
+backend sera pret, il suffira de definir `VITE_API_URL` et de remplacer la
+delegation dans `apps/web/src/api/client.ts` par des appels `fetch`.
 
 ## Roles et permissions
 
@@ -122,6 +141,10 @@ curl -X POST http://127.0.0.1:8080/needs \
 apps/
   api/        API Fastify (RBAC, audit, modules metier)
   web/        Front React + Vite
+    src/
+      data/   Mock backend (standalone mode) + seed data
+      api/    Client API (delegue au mock ou a l'API reelle)
+      ui/     Composants, pages, etat global
 packages/
   shared/     Schemas Zod, roles, permissions, enums
 docs/         Architecture, decisions, conformite
