@@ -1,0 +1,24 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: procura_dev_password
+    ports:
+      - "5432:5432"
+
+  minio:
+    environment:
+      MINIO_ROOT_PASSWORD: procura_dev_password_change_me
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  vault:
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root-token
+    ports:
+      - "8200:8200"
+
+  mailhog:
+    ports:
+      - "1025:1025"
+      - "8025:8025"

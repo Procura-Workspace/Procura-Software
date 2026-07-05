@@ -1,0 +1,58 @@
+openapi: 3.1.0
+info:
+  title: Procura Scan Results API
+  version: 1.0.0
+  description: Internal API endpoints for polling virus/sandbox analysis outcomes. Used by LAN components to retrieve DMZ classification results.
+paths:
+  /scan/result/{submissionId}:
+    get:
+      summary: Retrieve file safety scan outcomes
+      description: Returns the status and results of the multi-engine antivirus scan and dynamic sandbox analysis for the specified submission.
+      parameters:
+        - name: submissionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Scan results retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  submissionId:
+                    type: string
+                    format: uuid
+                  verdict:
+                    type: string
+                    enum: [clean, suspicious, malicious]
+                  scannedAt:
+                    type: string
+                    format: date-time
+                  avEngineResults:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        engine:
+                          type: string
+                        detected:
+                          type: boolean
+                        virusName:
+                          type: string
+                  sandboxReport:
+                    type: object
+                    properties:
+                      analyzed:
+                        type: boolean
+                      behavioralScore:
+                        type: integer
+                      suspiciousActivities:
+                        type: array
+                        items:
+                          type: string
+        "404":
+          description: Submission not found or scan not initiated

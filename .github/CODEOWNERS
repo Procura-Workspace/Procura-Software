@@ -1,0 +1,21 @@
+# GitHub CODEOWNERS file for Procura MVP
+# Defined according to MVP Plan Execution §5.1 (Ownership Exclusivity Zones)
+
+# Default owner for everything is both
+* @arix @sofiane
+
+# Infrastructure & Security - Arix owns
+/infra/ @arix
+/infra/security/ @arix
+/infra/monitoring/ @arix
+
+# Backend & Frontend - Sofiane owns
+/apps/api/ @sofiane
+/apps/web/ @sofiane
+
+# Shared & Contracts - Both must approve
+/packages/shared/ @arix @sofiane
+/contracts/ @arix @sofiane
+
+# Workflows & CI/CD - Both must approve
+/.github/workflows/ @arix @sofiane

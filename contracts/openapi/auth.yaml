@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: Procura Authentication & Session Management API
+  version: 1.0.0
+  description: API endpoints for secure user authentication, JWT session generation, MFA, and logout.
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate user
+      description: Validates user credentials and issues a JWT token. Handles MFA challenge redirection if required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  mfaRequired:
+                    type: boolean
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      displayName:
+                        type: string
+                      role:
+                        type: string
+        "401":
+          description: Invalid credentials
+        "403":
+          description: Account blocked (e.g. too many login attempts)
+
+  /auth/mfa/verify:
+    post:
+      summary: Verify TOTP MFA code
+      description: Validates the 6-digit TOTP token to complete login.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tempToken:
+                  type: string
+                code:
+                  type: string
+                  pattern: "^[0-9]{6}$"
+              required:
+                - tempToken
+                - code
+      responses:
+        "200":
+          description: MFA verification successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "400":
+          description: Invalid code or token expired
+
+  /auth/logout:
+    post:
+      summary: Terminate session
+      description: Invalidate active session tokens in Redis.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logged out successfully
+        "401":
+          description: Unauthorized
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

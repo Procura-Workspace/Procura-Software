@@ -8,3 +8,19 @@ coverage/
 *.log
 *.tsbuildinfo
 apps/web/.vite/
+
+# Secrets & Keys
+secrets/
+*.pem
+*.key
+.vault-token
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+

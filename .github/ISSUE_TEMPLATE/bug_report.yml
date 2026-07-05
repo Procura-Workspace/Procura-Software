@@ -1,0 +1,84 @@
+name: "🐛 Bug Report"
+description: "Report a bug to help improve Procura"
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please fill out this form as completely as possible to help us resolve the bug.
+  - type: dropdown
+    id: module
+    attributes:
+      label: Affected Module
+      description: Which Procura module is affected?
+      options:
+        - "Architecture & deploiement"
+        - "Utilisateurs & acces (IAM/RBAC)"
+        - "Expression du besoin"
+        - "Referentiel fournisseurs ERP"
+        - "RFQ & publication"
+        - "Portail fournisseur DMZ"
+        - "Depot securise des offres"
+        - "Horodatage & preuve legale"
+        - "Deadlines & verrouillage"
+        - "Audit & tracabilite"
+        - "Ouverture des plis"
+        - "Commission d'ouverture"
+        - "Analyse comparative"
+        - "Output final"
+        - "Integration ERP"
+        - "Communication collaborative"
+        - "Notifications systeme"
+        - "Administration & parametrage"
+        - "Securite globale"
+        - "Archivage legal"
+        - "Monitoring & exploitation"
+        - "Documentation & support"
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical (Blocker)
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Info
+      description: OS, Node version, Browser version, staging/dev environment, etc.
+      placeholder: Windows 11, Node 20.10, Chrome 120
+    validations:
+      required: false

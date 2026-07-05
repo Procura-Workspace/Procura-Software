@@ -1,0 +1,61 @@
+name: "🚀 Feature Request"
+description: "Suggest a new feature or improvement for Procura"
+title: "[FEAT] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please fill out this form to propose new features or improvements.
+  - type: dropdown
+    id: owner
+    attributes:
+      label: Owner Lead
+      description: Who will lead the implementation of this feature?
+      options:
+        - "⚙️ Sofiane (@sofiane) - Software/Logic/UI"
+        - "🔐 Arix (@arix) - Infra/Security/Network"
+        - "🤝 Joint / Collaboration"
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0 (Critical for MVP)
+        - P1 (High Priority)
+        - P2 (Medium Priority)
+        - P3 (Low Priority)
+    validations:
+      required: true
+  - type: input
+    id: sprint
+    attributes:
+      label: Targeted Sprint
+      description: Target sprint for implementation (e.g. Sprint 1, Sprint 2)
+      placeholder: Sprint 1
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: What problem are you trying to solve, and what is your proposed solution?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or features you've considered.
+    validations:
+      required: false
+  - type: input
+    id: effort
+    attributes:
+      label: Estimated Effort
+      description: Estimated time to complete (e.g., 2 days, 1 week)
+      placeholder: 3 days
+    validations:
+      required: false

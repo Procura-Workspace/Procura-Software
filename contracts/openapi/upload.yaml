@@ -1,0 +1,52 @@
+openapi: 3.1.0
+info:
+  title: Procura Secure Upload API (DMZ -> LAN)
+  version: 1.0.0
+  description: Endpoints for uploading supplier files, validating file headers/extensions, quarantining files, and polling scan status.
+paths:
+  /submissions/upload:
+    post:
+      summary: Upload supplier bid document
+      description: Receives multipart file data, performs initial type validation, encrypts, and places the file in DMZ quarantine.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                rfqId:
+                  type: string
+                  format: uuid
+                supplierId:
+                  type: string
+                  format: uuid
+                file:
+                  type: string
+                  format: binary
+              required:
+                - rfqId
+                - supplierId
+                - file
+      responses:
+        "202":
+          description: Upload accepted, file is placed in quarantine for analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  submissionId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [quarantined]
+                  fileName:
+                    type: string
+                  sha256Hash:
+                    type: string
+        "400":
+          description: Invalid file format, size exceeded, or missing parameters
+        "403":
+          description: RFQ deadline passed, submission locked

@@ -1,0 +1,1930 @@
+{
+  "source": "PROCURA_MVP_Plan_Execution_v1.0.docx",
+  "properties": {
+    "creator": "Un-named",
+    "last_modified_by": "Un-named",
+    "created": "2026-07-01T00:01:45.022Z",
+    "modified": "2026-07-01T00:01:45.022Z"
+  },
+  "counts": {
+    "paragraphs": 54,
+    "tables": 25,
+    "blocks": 79
+  },
+  "blocks": [
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "PROCURA"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Source-to-Contract Platform — MVP"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "PLAN D’EXÉCUTION MVP"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Répartition des Tâches & Workflow Collaboratif à 2 Développeurs"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Projet", "PROCURA — Plateforme S2C On-Premise"],
+        ["Phase", "MVP (Mois 1–4)"],
+        ["Équipe", "Arix (Sécurité & Réseau) + Sofiane (Software Engineering)"],
+        ["Sprint", "4 Sprints × 3 Semaines"],
+        ["Version", "1.0"]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading1",
+      "text": "01  PHILOSOPHIE DE TRAVAIL À 2"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Ce document définit comment deux développeurs aux compétences complémentaires construisent PROCURA MVP sans chevauchement, sans blocage et avec une qualité de production. Chaque décision d’architecture et de répartition repose sur un principe simple : chacun est propriétaire (owner) de sa couche, et les deux se synchronisent aux interfaces."
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "1.1  Les Deux Profils — Forces & Périmètres"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["🔐 ARIX — Sécurité & Réseau", "⚙️ SOFIANE — Software Engineering"],
+        [
+          "Infrastructure & Architecture réseau",
+          "Backend API & logique métier"
+        ],
+        [
+          "Configuration DMZ, Firewall, VLAN",
+          "Conception et implémentation des services REST"
+        ],
+        [
+          "Déploiement Nginx / ModSecurity (WAF)",
+          "Base de données (PostgreSQL, Redis, schéma)"
+        ],
+        [
+          "TLS 1.3, mTLS, certificats PKI",
+          "Workflow Engine & métier (RFQ, besoins)"
+        ],
+        [
+          "Chiffrement AES-256 (MinIO, stockage)",
+          "Frontend React + portail fournisseur"
+        ],
+        [
+          "HSM, PKI interne, signature offres",
+          "Intégration ERP (connecteurs CSV/JSON/XML)"
+        ],
+        [
+          "Scan AV + sandbox analyse fichiers",
+          "Auth service (sessions, tokens JWT)"
+        ],
+        [
+          "Audit & logs immuables (Wazuh/ELK)",
+          "Notifications (SMTP, templates)"
+        ],
+        ["Hardening OS, Docker seccomp", "Tests unitaires & intégration"],
+        ["SIEM, alertes sécurité", "Documentation API (Swagger/OpenAPI)"],
+        [
+          "Tests de sécurité, scan OWASP ZAP",
+          "CI/CD pipeline (GitHub Actions / GitLab CI)"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "1.2  Principe d’Architecture en Couches"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "L’architecture de PROCURA est divisée en couches verticales. Arix possède les couches infrastructure et sécurité ; Sofiane possède les couches applicatives. Les interfaces entre couches sont les seuls points de synchronisation."
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Couche", "Contenu", "Owner"],
+        [
+          "L7",
+          "Frontend React — Interface acheteur, commission, admin",
+          "⚙️ SOFIANE"
+        ],
+        ["L6", "Portail Fournisseur — UI DMZ (React)", "⚙️ SOFIANE"],
+        [
+          "L5",
+          "Backend API — Services métier (RFQ, besoin, commission, output)",
+          "⚙️ SOFIANE"
+        ],
+        ["L4", "Auth & Sessions — JWT, RBAC, IAM adapter", "⚙️ SOFIANE"],
+        [
+          "L3",
+          "Sécurité Applicative — WAF, validation entrées, scan fichiers, sandbox",
+          "🔐 ARIX"
+        ],
+        [
+          "L2",
+          "Infrastructure Réseau — DMZ, LAN, Firewall, Nginx, mTLS, TLS 1.3",
+          "🔐 ARIX"
+        ],
+        [
+          "L1",
+          "Système & Stockage — Docker, OS hardened, MinIO chiffré, PostgreSQL TDE, HSM",
+          "🔐 ARIX"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "1.3  Interfaces — Les Points de Synchronisation"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Ces interfaces sont les SEULES zones où le travail des deux développeurs se touche. Elles doivent être contractées (documentes en OpenAPI / README) AVANT le développement de chaque module."
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Interface", "Description", "Action requise"],
+        [
+          "Upload API (DMZ → LAN)",
+          "API de dépôt fichier fournisseur. Arix définit les endpoints sécurisés, Sofiane implémente le handler backend.",
+          "Contrat OpenAPI signé au Sprint 1 — Semaine 1"
+        ],
+        [
+          "Auth Service",
+          "Sofiane implémente l’auth service. Arix valide la sécurité des tokens, la rotation, la gestion des sessions.",
+          "Revue sécurité par Arix avant mise en prod"
+        ],
+        [
+          "Storage API",
+          "Arix configure MinIO chiffré. Sofiane utilise le SDK MinIO pour stocker/lire les fichiers.",
+          "SDK et credentials fournis par Arix au S1"
+        ],
+        [
+          "Scan Results",
+          "Arix expose un endpoint /scan/result. Sofiane lit le résultat pour décider du traitement.",
+          "Interface définie au Sprint 2"
+        ],
+        [
+          "Notification Service",
+          "Sofiane implémente la logique. Arix configure le SMTP relay interne sécurisé.",
+          "Config SMTP fournie par Arix au S2"
+        ],
+        [
+          "Audit Logs",
+          "Sofiane émet des événements via une librairie. Arix configure le SIEM pour les ingester.",
+          "Format de log convenu au Sprint 1"
+        ],
+        [
+          "Monitoring Hooks",
+          "Sofiane exporte les métriques Prometheus. Arix configure les dashboards Grafana.",
+          "Format métriques convenu au Sprint 2"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading1",
+      "text": "02  WORKFLOW COLLABORATIF — COMMENT TRAVAILLER À DEUX"
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "2.1  Structure des Sprints"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Chaque sprint dure 3 semaines. La première journée est un Planning commun, la dernière est une Demo + Retro. Le développement est parallèle sur 2½ semaines."
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Jour", "🔐 Arix", "⚙️ Sofiane"],
+        [
+          "J1 (Lundi)",
+          "Sprint Planning (COMMUN) — revue du backlog, définition des DoD, affectation des tâches",
+          "Sprint Planning (COMMUN)"
+        ],
+        [
+          "J1 après-midi",
+          "Contract des interfaces : rédaction OpenAPI/README des endpoints partagés",
+          "Contract des interfaces (en binome)"
+        ],
+        [
+          "J2–J5",
+          "Infrastructure & sécurité du sprint",
+          "Backend API & métier du sprint"
+        ],
+        [
+          "J6–J10",
+          "Tests sécurité, durcissement, monitoring",
+          "Frontend, intégration, tests unitaires"
+        ],
+        [
+          "J11–J14",
+          "Revue croisée : Arix teste la sécurité du code de Sofiane",
+          "Revue croisée : Sofiane teste les APIs d’Arix"
+        ],
+        [
+          "J15 (Vendredi)",
+          "Sprint Demo + Retrospective (COMMUN)",
+          "Sprint Demo + Retrospective (COMMUN)"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "2.2  Git Workflow — Branch Strategy"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Branche", "Usage", "Règles"],
+        [
+          "main",
+          "Code de production — déployable à tout moment",
+          "Merge uniquement via PR approuvée par les 2. Aucun push direct."
+        ],
+        [
+          "develop",
+          "Branche d’intégration continue",
+          "Merge depuis feature/* après review. CI doit passer (tests + scan)."
+        ],
+        [
+          "feature/arix/*",
+          "Tâches Arix : infra, sécurité",
+          "Ex : feature/arix/dmz-setup, feature/arix/tls-config"
+        ],
+        [
+          "feature/sofiane/*",
+          "Tâches Sofiane : backend, frontend",
+          "Ex : feature/sofiane/rfq-api, feature/sofiane/auth-service"
+        ],
+        [
+          "hotfix/*",
+          "Corrections urgentes production",
+          "Branch depuis main, merge dans main + develop. Les 2 approuvent."
+        ],
+        [
+          "release/mvp-*",
+          "Préparation d’une livraison",
+          "Gel des features, uniquement bugfix. Version tagée."
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Règles absolues Git :"
+    },
+    {
+      "type": "paragraph",
+      "style": "ListParagraph",
+      "text": "Aucun commit direct sur main ou develop."
+    },
+    {
+      "type": "paragraph",
+      "style": "ListParagraph",
+      "text": "Tout PR doit avoir au minimum 1 approval (de l’autre développeur)."
+    },
+    {
+      "type": "paragraph",
+      "style": "ListParagraph",
+      "text": "Les commits suivent le format Conventional Commits : feat:, fix:, infra:, sec:, docs:, test:."
+    },
+    {
+      "type": "paragraph",
+      "style": "ListParagraph",
+      "text": "Chaque PR décrit : What (quoi), Why (pourquoi), How to test (comment tester)."
+    },
+    {
+      "type": "paragraph",
+      "style": "ListParagraph",
+      "text": "Les secrets (passwords, clefs, certificats) ne touchent JAMAIS le repo — ils sont dans Vault."
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "2.3  Protocole de Communication"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Outil", "Usage", "Fréquence", "Format"],
+        [
+          "Daily Standup",
+          "Blocages, avancements, dépendances",
+          "Quotidien 15 min",
+          "3 questions : Done / Today / Blocker"
+        ],
+        [
+          "Notion / Confluence",
+          "Documentation des décisions techniques (ADR)",
+          "Chaque décision majeure",
+          "Architecture Decision Record"
+        ],
+        [
+          "GitHub Issues",
+          "Backlog, bugs, tâches",
+          "En continu",
+          "Issue template (titre, desc, owner, prio)"
+        ],
+        [
+          "GitHub PR",
+          "Revue de code croisée",
+          "À chaque merge",
+          "Template PR (what, why, test)"
+        ],
+        [
+          "Postman / Insomnia",
+          "Partage des collections API",
+          "À chaque nouveau endpoint",
+          "Collection versionnée dans le repo"
+        ],
+        [
+          "Weekly Tech Review",
+          "Architecture, blocages complexes, dette technique",
+          "Hebdomadaire 30 min",
+          "Agenda préparé la veille"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "2.4  Définition of Done (DoD) — Standard Qualité"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Une tâche est considérée DONE uniquement si TOUS les critères suivants sont satisfaits :"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["#", "Critère", "Vérifié par"],
+        ["1", "Le code est mergeable dans develop sans conflit", "GitHub CI"],
+        [
+          "2",
+          "Les tests unitaires passent (≥80 % coverage)",
+          "GitHub CI (Jest / Pytest)"
+        ],
+        [
+          "3",
+          "La fonctionnalité est testée manuellement en environnement de dev",
+          "Owner de la tâche"
+        ],
+        [
+          "4",
+          "La PR a été reviewée et approuvée par l’autre développeur",
+          "GitHub Review"
+        ],
+        [
+          "5",
+          "Aucun secret dans le code (scan Gitleaks / Trufflehog)",
+          "GitHub CI (scan auto)"
+        ],
+        [
+          "6",
+          "La documentation de l’interface est mise à jour (OpenAPI / README)",
+          "Owner de la tâche"
+        ],
+        [
+          "7",
+          "Les logs applicatifs sont correctement émis (format JSON structuré)",
+          "Arix (vérification SIEM)"
+        ],
+        [
+          "8",
+          "Pour les composants sécurité : validation par Arix (scan OWASP, config)",
+          "Arix"
+        ],
+        [
+          "9",
+          "Pour les composants métier : validation fonctionnelle par Sofiane",
+          "Sofiane"
+        ],
+        ["10", "L’issue GitHub est fermée et liée à la PR", "Owner de la tâche"]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading1",
+      "text": "03  BACKLOG MVP — RÉPARTITION COMPLÈTE DES TÂCHES"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Légende : 🔐 Arix (Sécurité)    ⚙️ Sofiane (Software)    🤝 Les deux      |  Priorités : P0=Critique  P1=Haute  P2=Moyenne  P3=Faible"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Tâche", "Owner", "Priorité", "Sprint", "Effort"],
+        ["MODULE 1 — Infrastructure & Architecture Générale"],
+        [
+          "Conception et validation de l’architecture réseau (DMZ/LAN/ERP/Admin)",
+          "🤝 Les deux",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Rédaction et signature des contrats d’interface (OpenAPI + README)",
+          "🤝 Les deux",
+          "P0",
+          "S1",
+          "1j"
+        ],
+        [
+          "Setup de l’environnement Docker Compose (dev, staging, prod)",
+          "🤝 Les deux",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Configuration du repo Git (branches, protections, CI/CD skeleton)",
+          "⚙️ Sofiane",
+          "P0",
+          "S1",
+          "1j"
+        ],
+        [
+          "Configuration réseau : VLAN, Firewall, Reverse Proxy Nginx",
+          "🔐 Arix",
+          "P0",
+          "S1",
+          "3j"
+        ],
+        [
+          "Configuration TLS 1.3 + HTTPS sur tous les services",
+          "🔐 Arix",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Déploiement PostgreSQL avec chiffrement TDE activé",
+          "🔐 Arix",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Déploiement MinIO avec chiffrement SSE-C",
+          "🔐 Arix",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Déploiement Redis pour cache et sessions",
+          "🔐 Arix",
+          "P1",
+          "S1",
+          "1j"
+        ],
+        [
+          "Déploiement RabbitMQ pour bus de messages",
+          "🔐 Arix",
+          "P1",
+          "S1",
+          "1j"
+        ],
+        [
+          "Déploiement HashiCorp Vault pour la gestion des secrets",
+          "🔐 Arix",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Hardening OS des serveurs (Ubuntu 22.04, CIS Benchmark)",
+          "🔐 Arix",
+          "P1",
+          "S1",
+          "2j"
+        ],
+        [
+          "Configuration du pipeline CI/CD (lint, tests, build, deploy)",
+          "⚙️ Sofiane",
+          "P1",
+          "S1",
+          "3j"
+        ],
+        ["MODULE 2 — Gestion des Utilisateurs & Authentification"],
+        [
+          "Conception du schéma RBAC (rôles, permissions, modules)",
+          "🤝 Les deux",
+          "P0",
+          "S1",
+          "1j"
+        ],
+        [
+          "Implémentation de l’Auth Service (JWT, sessions, logout)",
+          "⚙️ Sofiane",
+          "P0",
+          "S1",
+          "4j"
+        ],
+        [
+          "Implémentation du RBAC Engine (middleware permission check)",
+          "⚙️ Sofiane",
+          "P0",
+          "S1",
+          "3j"
+        ],
+        [
+          "Intégration LDAP / Active Directory (connecteur + tests)",
+          "🔐 Arix",
+          "P1",
+          "S1",
+          "3j"
+        ],
+        [
+          "Configuration MFA (TOTP) pour les administrateurs",
+          "🔐 Arix",
+          "P1",
+          "S2",
+          "2j"
+        ],
+        [
+          "Gestion des sessions chiffrées (Redis, expiration, rotation tokens)",
+          "⚙️ Sofiane",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Implémentation du blocage brute-force (rate limiting + fail2ban)",
+          "🔐 Arix",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Tests sécurité Auth Service (OWASP ZAP, test contournement RBAC)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "2j"
+        ],
+        [
+          "Tests unitaires Auth Service (≥80% coverage)",
+          "⚙️ Sofiane",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Interface d’administration : création / gestion / désactivation utilisateurs",
+          "⚙️ Sofiane",
+          "P1",
+          "S2",
+          "3j"
+        ],
+        ["MODULE 3 — Expression du Besoin (Interne)"],
+        [
+          "Conception du schéma BDD (need_requests, need_versions)",
+          "⚙️ Sofiane",
+          "P0",
+          "S1",
+          "1j"
+        ],
+        [
+          "API REST : CRUD besoin (création, modification, soumission)",
+          "⚙️ Sofiane",
+          "P0",
+          "S2",
+          "3j"
+        ],
+        [
+          "Workflow Engine : circuit de validation multi-niveaux",
+          "⚙️ Sofiane",
+          "P0",
+          "S2",
+          "4j"
+        ],
+        [
+          "Versioning des besoins (immutabilité + historique)",
+          "⚙️ Sofiane",
+          "P0",
+          "S2",
+          "2j"
+        ],
+        [
+          "Upload sécurisé de pièces jointes internes (validation type + taille)",
+          "🔐 Arix",
+          "P1",
+          "S2",
+          "2j"
+        ],
+        [
+          "Frontend : formulaire de saisie du besoin (React, validation temps réel)",
+          "⚙️ Sofiane",
+          "P1",
+          "S2",
+          "3j"
+        ],
+        [
+          "Frontend : tableau de bord du demandeur (statuts, historique)",
+          "⚙️ Sofiane",
+          "P2",
+          "S2",
+          "2j"
+        ],
+        [
+          "Audit logs : tous événements du module besoin journalés",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "1j"
+        ],
+        [
+          "Tests unitaires + intégration module besoin",
+          "⚙️ Sofiane",
+          "P0",
+          "S2",
+          "2j"
+        ],
+        ["MODULE 5 — Lancement RFQ & Publication"],
+        [
+          "Conception du schéma BDD (rfqs, rfq_documents, rfq_suppliers)",
+          "⚙️ Sofiane",
+          "P0",
+          "S2",
+          "1j"
+        ],
+        [
+          "API REST : CRUD RFQ (création, paramétrage, validation interne)",
+          "⚙️ Sofiane",
+          "P0",
+          "S2",
+          "4j"
+        ],
+        [
+          "Scellage RFQ : calcul SHA-256 global + signature HSM",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "3j"
+        ],
+        [
+          "Horodatage légal RFC 3161 sur publication RFQ",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "2j"
+        ],
+        [
+          "Publication contrôlée LAN → DMZ (read-only, séparation réseau)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "2j"
+        ],
+        [
+          "Sélection fournisseurs depuis référentiel ERP (read-only)",
+          "⚙️ Sofiane",
+          "P1",
+          "S3",
+          "3j"
+        ],
+        [
+          "Génération invitations fournisseurs (liens sécurisés + traçables)",
+          "⚙️ Sofiane",
+          "P0",
+          "S2",
+          "2j"
+        ],
+        [
+          "Envoi emails invitations via SMTP relay sécurisé",
+          "⚙️ Sofiane",
+          "P1",
+          "S3",
+          "1j"
+        ],
+        [
+          "Frontend : interface création et gestion RFQ (acheteur)",
+          "⚙️ Sofiane",
+          "P1",
+          "S3",
+          "4j"
+        ],
+        [
+          "Tracking invitations (envoyé / consulté / répondu)",
+          "⚙️ Sofiane",
+          "P2",
+          "S3",
+          "2j"
+        ],
+        [
+          "Tests sécurité : vérification non-modifiabilité RFQ publiée",
+          "🔐 Arix",
+          "P0",
+          "S3",
+          "1j"
+        ],
+        ["MODULES 6 & 7 — Portail Fournisseur & Dépôt Sécurisé"],
+        [
+          "Déploiement portail fournisseur en DMZ (Nginx, isolation LAN)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "3j"
+        ],
+        [
+          "Configuration mTLS pour accès fournisseur (DMZ)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "2j"
+        ],
+        [
+          "Protection anti-brute-force portail (rate limit + CAPTCHA)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "1j"
+        ],
+        [
+          "Frontend portail fournisseur : dashboard, consultation RFQ (React)",
+          "⚙️ Sofiane",
+          "P0",
+          "S2",
+          "4j"
+        ],
+        [
+          "Upload API sécurisée en DMZ (REST + validation MIME/magic bytes)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "3j"
+        ],
+        [
+          "Stockage quarantaine chiffré (MinIO DMZ)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "1j"
+        ],
+        [
+          "Analyse statique des fichiers (PDF scripts, CSV injection, EXIF)",
+          "🔐 Arix",
+          "P0",
+          "S3",
+          "3j"
+        ],
+        [
+          "Scan antivirus multi-moteur (ClamAV + moteur commercial)",
+          "🔐 Arix",
+          "P0",
+          "S3",
+          "2j"
+        ],
+        [
+          "Sandbox dynamique (VM isolée, analyse comportementale)",
+          "🔐 Arix",
+          "P1",
+          "S3",
+          "4j"
+        ],
+        [
+          "Scellage offres : SHA-256 + signature HSM + horodatage RFC 3161",
+          "🔐 Arix",
+          "P0",
+          "S3",
+          "2j"
+        ],
+        ["Archivage WORM des offres scellées", "🔐 Arix", "P0", "S3", "1j"],
+        [
+          "Pull sécurisé DMZ → LAN (Pull Only, vérification intégrité)",
+          "🔐 Arix",
+          "P0",
+          "S3",
+          "2j"
+        ],
+        [
+          "Accusé de réception fournisseur (hash + timestamp)",
+          "⚙️ Sofiane",
+          "P0",
+          "S3",
+          "1j"
+        ],
+        [
+          "Handler backend : traitement du résultat scan / import offre scellée",
+          "⚙️ Sofiane",
+          "P0",
+          "S3",
+          "2j"
+        ],
+        [
+          "Frontend : suivi statut dépôt fournisseur (temps réel)",
+          "⚙️ Sofiane",
+          "P1",
+          "S3",
+          "2j"
+        ],
+        ["MODULE 9 — Gestion des Deadlines & Verrouillage Automatique"],
+        [
+          "Implémentation Deadline Engine (timers, scheduler, cron)",
+          "⚙️ Sofiane",
+          "P0",
+          "S2",
+          "3j"
+        ],
+        [
+          "Verrouillage automatique portail à expiration (Lock Manager)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "2j"
+        ],
+        [
+          "Synchronisation NTP sécurisée (détection dérive)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "1j"
+        ],
+        [
+          "Alertes deadline (J-2, J-1, J-0) pour fournisseurs",
+          "⚙️ Sofiane",
+          "P1",
+          "S3",
+          "1j"
+        ],
+        [
+          "Génération PV de clôture automatique (compte soumissions)",
+          "⚙️ Sofiane",
+          "P0",
+          "S3",
+          "1j"
+        ],
+        [
+          "Test : vérification rejet dépôt tardif (unit + intégration)",
+          "🤝 Les deux",
+          "P0",
+          "S3",
+          "1j"
+        ],
+        ["MODULE 10 — Audit & Traçabilité"],
+        [
+          "Définition du format de log JSON structuré (contrat BOTH)",
+          "🤝 Les deux",
+          "P0",
+          "S1",
+          "1j"
+        ],
+        [
+          "Implémentation de la librairie d’émission de logs (shared lib)",
+          "⚙️ Sofiane",
+          "P0",
+          "S1",
+          "2j"
+        ],
+        [
+          "Déploiement ELK Stack / OpenSearch (ingestion, indexation)",
+          "🔐 Arix",
+          "P0",
+          "S1",
+          "3j"
+        ],
+        [
+          "Configuration Wazuh SIEM (règles, alertes, corrélation)",
+          "🔐 Arix",
+          "P1",
+          "S2",
+          "3j"
+        ],
+        [
+          "Signature des logs (hash chaîné, immuabilité)",
+          "🔐 Arix",
+          "P0",
+          "S2",
+          "2j"
+        ],
+        ["Archivage WORM des journaux d’audit", "🔐 Arix", "P1", "S3", "1j"],
+        [
+          "API de consultation des logs (filtres, export PDF/CSV)",
+          "⚙️ Sofiane",
+          "P2",
+          "S4",
+          "3j"
+        ],
+        ["MODULE 17 — Notifications & Messagerie Système"],
+        [
+          "Configuration SMTP relay interne sécurisé (TLS, auth)",
+          "🔐 Arix",
+          "P1",
+          "S2",
+          "1j"
+        ],
+        [
+          "Implémentation Notification Service (queue, templates, dispatch)",
+          "⚙️ Sofiane",
+          "P1",
+          "S2",
+          "3j"
+        ],
+        [
+          "Templates emails (invitation, accusé, deadline, alerte)",
+          "⚙️ Sofiane",
+          "P1",
+          "S2",
+          "2j"
+        ],
+        [
+          "Suivi des envois (envoyé / échoué / relayé)",
+          "⚙️ Sofiane",
+          "P2",
+          "S3",
+          "1j"
+        ],
+        ["MODULE 18 — Administration & Paramétrage"],
+        [
+          "Interface admin : gestion utilisateurs & rôles",
+          "⚙️ Sofiane",
+          "P1",
+          "S3",
+          "3j"
+        ],
+        [
+          "Paramétrage workflows (circuit validation configurable)",
+          "⚙️ Sofiane",
+          "P2",
+          "S4",
+          "3j"
+        ],
+        [
+          "Supervision services : état, santé, ressources",
+          "🔐 Arix",
+          "P1",
+          "S3",
+          "2j"
+        ],
+        [
+          "Tableau de bord monitoring (Prometheus + Grafana)",
+          "🔐 Arix",
+          "P1",
+          "S3",
+          "3j"
+        ],
+        [
+          "Configuration des alertes opérationnelles",
+          "🔐 Arix",
+          "P1",
+          "S3",
+          "2j"
+        ],
+        ["PHASE FINALE — Intégration, Tests & Sécurité Globale"],
+        [
+          "Tests d’intégration end-to-end (flux complet besoin → portail → dépôt → scellage)",
+          "🤝 Les deux",
+          "P0",
+          "S4",
+          "3j"
+        ],
+        [
+          "Tests de sécurité : scan OWASP ZAP portail fournisseur",
+          "🔐 Arix",
+          "P0",
+          "S4",
+          "2j"
+        ],
+        [
+          "Tests de sécurité : scan OWASP ZAP interface interne",
+          "🔐 Arix",
+          "P0",
+          "S4",
+          "2j"
+        ],
+        [
+          "Test coffre-fort : vérification accès impossible avant deadline",
+          "🔐 Arix",
+          "P0",
+          "S4",
+          "1j"
+        ],
+        [
+          "Test intégrité : modification offre invalide le hash",
+          "🔐 Arix",
+          "P0",
+          "S4",
+          "1j"
+        ],
+        [
+          "Tests de charge : 200 utilisateurs simultanés (k6)",
+          "⚙️ Sofiane",
+          "P1",
+          "S4",
+          "2j"
+        ],
+        [
+          "Tests UAT avec profils simulés (acheteur, fournisseur, admin)",
+          "🤝 Les deux",
+          "P0",
+          "S4",
+          "2j"
+        ],
+        [
+          "Revue sécurité générale (checklist CIS, OWASP Top 10)",
+          "🔐 Arix",
+          "P0",
+          "S4",
+          "2j"
+        ],
+        [
+          "Documentation technique finale (README, API docs, runbook)",
+          "🤝 Les deux",
+          "P1",
+          "S4",
+          "2j"
+        ],
+        ["Préparation PV de recette MVP", "🤝 Les deux", "P1", "S4", "1j"]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading1",
+      "text": "04  PLANNING SPRINTS DÉTAILLÉ"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Le MVP est découpé en 4 sprints de 3 semaines. Les deux développeurs travaillent en parallèle sur leurs périmètres respectifs. Les dépendances critiques sont marquées ⚠️."
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "Sprint 1 — Fondations (Semaines 1–3)"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Objectif : environnement de développement opérationnel, auth fonctionnelle, infrastructure de base."
+    },
+    {
+      "type": "table",
+      "rows": [["SPRINT 1 — FONDATIONS Semaines 1–3 — 3 semaines"]]
+    },
+    {
+      "type": "table",
+      "rows": [
+        [
+          "🔐 Arix — Sécurité & Infrastructure",
+          "⚙️ Sofiane — Software Engineering"
+        ],
+        [
+          "1.1 Setup infrastructure Docker Compose (dev + staging)",
+          "1.1 Setup repo Git (branches, protections, CI/CD skeleton)"
+        ],
+        [
+          "1.2 Configuration réseau : Nginx, VLAN, Firewall rules",
+          "1.2 Conception schéma BDD complet (toutes entités MVP)"
+        ],
+        [
+          "1.3 TLS 1.3 sur tous les services",
+          "1.3 Implémentation Auth Service (JWT, sessions, logout)"
+        ],
+        [
+          "1.4 Déploiement PostgreSQL (TDE) + MinIO (SSE-C)",
+          "1.4 Implémentation RBAC Engine (middleware check)"
+        ],
+        [
+          "1.5 Déploiement Redis + RabbitMQ",
+          "1.5 Implémentation librairie de logs structurés (shared)"
+        ],
+        [
+          "1.6 Déploiement HashiCorp Vault",
+          "1.6 Configuration pipeline CI/CD (lint, tests, build)"
+        ],
+        [
+          "1.7 Intégration LDAP / Active Directory",
+          "1.7 Conception API RFQ (OpenAPI spec — brouillon)"
+        ],
+        [
+          "1.8 Blocage brute-force (rate limiting + fail2ban)",
+          "1.8 Tests unitaires Auth Service (≥80%)"
+        ],
+        [
+          "1.9 Déploiement ELK Stack (skeleton ingestion logs)",
+          "1.9 Swagger / API docs skeleton"
+        ],
+        ["1.10 Hardening OS (CIS Benchmark niveau 1)", ""],
+        [
+          "⚠️ Valider les contrats d’interface avec Sofiane (J1)",
+          "⚠️ Livrable J15 : env dev up, auth fonctionnel"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "Sprint 2 — Coeur Métier & Sécurité DMZ (Semaines 4–6)"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Objectif : module besoin complet, portail fournisseur déployé, RFQ de base, déadlines."
+    },
+    {
+      "type": "table",
+      "rows": [["SPRINT 2 — CŒUR MÉTIER & PORTAIL Semaines 4–6 — 3 semaines"]]
+    },
+    {
+      "type": "table",
+      "rows": [
+        [
+          "🔐 Arix — Sécurité & Infrastructure",
+          "⚙️ Sofiane — Software Engineering"
+        ],
+        [
+          "2.1 Déploiement portail fournisseur en DMZ (isolation réseau)",
+          "2.1 API REST : module besoin (CRUD + workflow validation)"
+        ],
+        [
+          "2.2 Configuration mTLS portail fournisseur",
+          "2.2 Versioning besoins (immutabilité + historique)"
+        ],
+        [
+          "2.3 Upload API sécurisée (MIME/magic bytes validation)",
+          "2.3 API REST : CRUD RFQ (création, paramétrage)"
+        ],
+        [
+          "2.4 Stockage quarantaine chiffré (MinIO DMZ)",
+          "2.4 Deadline Engine (timers, scheduler, cron)"
+        ],
+        [
+          "2.5 Scellage RFQ : SHA-256 + signature HSM",
+          "2.5 Génération invitations fournisseurs (tokens sécurisés)"
+        ],
+        [
+          "2.6 Horodatage RFC 3161 sur publication RFQ",
+          "2.6 Notification Service (queue + templates de base)"
+        ],
+        [
+          "2.7 Publication contrôlée LAN → DMZ (read-only)",
+          "2.7 Configuration SMTP (depuis config fournie par Arix)"
+        ],
+        [
+          "2.8 Verrouillage automatique deadlines (Lock Manager)",
+          "2.8 Frontend : formulaire besoin (React)"
+        ],
+        [
+          "2.9 Synchronisation NTP sécurisée",
+          "2.9 Frontend portail fournisseur : dashboard + consultation RFQ"
+        ],
+        [
+          "2.10 Configuration MFA (TOTP) administrateurs",
+          "2.10 Handler backend : génération PV de clôture"
+        ],
+        [
+          "2.11 Wazuh SIEM (skeleton, premières règles)",
+          "2.11 Tests unitaires modules besoin + RFQ"
+        ],
+        [
+          "⚠️ Livrer Upload API contratée (interface Sofiane)",
+          "⚠️ Livrable J30 : flux besoin→RFQ→portail démo"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "Sprint 3 — Sécurité Avancée & Métier Complet (Semaines 7–9)"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Objectif : scan complet des offres, scellage, audit immuable, fonctionnelé MVP complète."
+    },
+    {
+      "type": "table",
+      "rows": [
+        [
+          "SPRINT 3 — SÉCURITÉ AVANCÉE & MÉTIER COMPLET Semaines 7–9 — 3 semaines"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "rows": [
+        [
+          "🔐 Arix — Sécurité & Infrastructure",
+          "⚙️ Sofiane — Software Engineering"
+        ],
+        [
+          "3.1 Analyse statique fichiers (PDF/CSV/images)",
+          "3.1 Handler backend : traitement résultat scan / import offre"
+        ],
+        [
+          "3.2 Scan antivirus multi-moteur (ClamAV + commercial)",
+          "3.2 Accusé de réception fournisseur (hash + timestamp)"
+        ],
+        [
+          "3.3 Sandbox dynamique (VM isolée, analyse comportementale)",
+          "3.3 Frontend : suivi statut dépôt fournisseur"
+        ],
+        [
+          "3.4 Archivage WORM offres scellées",
+          "3.4 Interface admin : gestion utilisateurs & rôles"
+        ],
+        [
+          "3.5 Pull sécurisé DMZ → LAN (Pull Only, vérif intégrité)",
+          "3.5 Sélection fournisseurs depuis référentiel ERP (read-only)"
+        ],
+        [
+          "3.6 Signature logs + archivage WORM journaux audit",
+          "3.6 Envoi emails invitations via SMTP relay"
+        ],
+        [
+          "3.7 Supervision services : Prometheus + Grafana (dashboards)",
+          "3.7 Tracking invitations (envoyé / consulté / répondu)"
+        ],
+        [
+          "3.8 Alertes opérationnelles (email, webhook)",
+          "3.8 Alertes deadline (J-2, J-1) pour fournisseurs"
+        ],
+        [
+          "3.9 Tests sécurité Auth (OWASP ZAP — 1er scan)",
+          "3.9 Upload sécurisé pièces jointes internes (module besoin)"
+        ],
+        [
+          "3.10 Test coffre-fort (accès offre avant deadline → refus)",
+          "3.10 Tests intégration modules 3+5+6+7+9"
+        ],
+        [
+          "⚠️ Livrer résultat scan (endpoint /scan/result pour Sofiane)",
+          "⚠️ Livrable J45 : flux complet démo end-to-end"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "Sprint 4 — Consolidation, Tests & Recette (Semaines 10–12)"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Objectif : tests de sécurité complets, tests de charge, documentation, PV de recette MVP."
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["SPRINT 4 — CONSOLIDATION & RECETTE Semaines 10–12 — 3 semaines"]
+      ]
+    },
+    {
+      "type": "table",
+      "rows": [
+        [
+          "🔐 Arix — Sécurité & Infrastructure",
+          "⚙️ Sofiane — Software Engineering"
+        ],
+        [
+          "4.1 Scan OWASP ZAP complet portail fournisseur + LAN",
+          "4.1 Tests d’intégration end-to-end (flux complet)"
+        ],
+        [
+          "4.2 Test vérification intégrité (hash invalide si modif)",
+          "4.2 Tests de charge (k6 — 200 utilisateurs simultanés)"
+        ],
+        [
+          "4.3 Test rejet fichier malveillant (EICAR)",
+          "4.3 UAT simulation profils (acheteur, fournisseur, admin)"
+        ],
+        [
+          "4.4 Revue sécurité générale (CIS, OWASP Top 10)",
+          "4.4 Corrections bugs identifiés en tests"
+        ],
+        [
+          "4.5 Test coffre-fort complet (plusieurs scénarios)",
+          "4.5 API docs finale (Swagger complet)"
+        ],
+        [
+          "4.6 Vérification hardening final (scan Lynis)",
+          "4.6 README technique complet"
+        ],
+        [
+          "4.7 Configuration sauvegardes automatiques (test restauration)",
+          "4.7 Guide utilisateur (acheteur, fournisseur, admin)"
+        ],
+        [
+          "4.8 Runbook opérationnel (PRA / alertes / incidents)",
+          "4.8 Polish UX frontend (accessibilité, messages erreur)"
+        ],
+        [
+          "4.9 Contribution documentation technique (infra, sécurité)",
+          "4.9 Préparation PV de recette MVP"
+        ],
+        [
+          "⚠️ Validation sécurité de tous les composants avant recette",
+          "⚠️ Livrable J60 : MVP recetté et déployable"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading1",
+      "text": "05  RÈGLES ANTI-CHEVAUCHEMENT — COMMENT ÉVITER LE CHAOS"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "C’est la section la plus importante de ce document. Ces règles évitent les conflits, les ré-écritures mutuelles et les décisions contradictoires."
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "5.1  Tableau des Zones d’Exclusivité"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Chaque zone technique appartient exclusivement à un développeur. L’autre ne touche PAS sans validation préalable."
+    },
+    {
+      "type": "table",
+      "rows": [
+        [
+          "Zone technique",
+          "Owner exclusif",
+          "L’autre peut...",
+          "L’autre ne peut PAS..."
+        ],
+        [
+          "Firewall / VLAN / Nginx config",
+          "🔐 Arix",
+          "Lire la doc, signaler un problème",
+          "Modifier la config réseau"
+        ],
+        [
+          "Certificats TLS / PKI / HSM",
+          "🔐 Arix",
+          "Utiliser les endpoints fournis",
+          "Générer ou modifier des certs"
+        ],
+        [
+          "Docker seccomp / OS hardening",
+          "🔐 Arix",
+          "Proposer des composères",
+          "Modifier les policies sécurité"
+        ],
+        [
+          "MinIO / stockage chiffré config",
+          "🔐 Arix",
+          "Utiliser le SDK fourni",
+          "Modifier la config de chiffrement"
+        ],
+        [
+          "SIEM / ELK / Wazuh rules",
+          "🔐 Arix",
+          "Lire les dashboards",
+          "Modifier les règles SIEM"
+        ],
+        [
+          "Scan AV / Sandbox config",
+          "🔐 Arix",
+          "Consommer le résultat via API",
+          "Modifier les règles de scan"
+        ],
+        [
+          "Schéma BDD (PostgreSQL)",
+          "⚙️ Sofiane",
+          "Proposer des colonnes sécurité",
+          "Créer des tables sans validation"
+        ],
+        [
+          "Logic métier (services, controllers)",
+          "⚙️ Sofiane",
+          "Proposer des contraintes sécu",
+          "Modifier la logique métier"
+        ],
+        [
+          "Frontend React (UI/UX)",
+          "⚙️ Sofiane",
+          "Signaler des vuln XSS observées",
+          "Modifier les composants UI"
+        ],
+        [
+          "API Gateway / Endpoints REST",
+          "⚙️ Sofiane",
+          "Tester la sécurité des endpoints",
+          "Modifier les routes sans accord"
+        ],
+        [
+          "CI/CD Pipeline config",
+          "⚙️ Sofiane",
+          "Proposer des steps sécurité",
+          "Modifier le pipeline sans accord"
+        ],
+        [
+          "Templates notifications",
+          "⚙️ Sofiane",
+          "Valider l’absence de data leak",
+          "Modifier le contenu des templates"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "5.2  Protocole pour les Zones Partagées"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Certaines zones nécessitent la contribution des deux. Voici le protocole strict à suivre :"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Zone partagée", "Procédure", "Validation"],
+        [
+          "Contrats d’interface (OpenAPI)",
+          "Sofiane rédige le spec. Arix valide les aspects sécurité (auth, chiffrement, rate limit). Signature des deux avant implémentation.",
+          "PR labelée \"contract\" — approbation des 2 obligatoire"
+        ],
+        [
+          "Format des logs d’audit",
+          "Session commune J1 Sprint 1. Définition du schéma JSON. Documenté dans le README. Immuable après accord.",
+          "Documenté et signé par les deux"
+        ],
+        [
+          "Schéma BDD (colonnes sécurité)",
+          "Sofiane crée les entités métier. Arix propose les colonnes sécurité (hash, signature, timestamp). Merge via PR review.",
+          "PR review par Arix sur tout schema change"
+        ],
+        [
+          "Décisions d’architecture majeures",
+          "Toute décision impactant les deux couches est documentée en ADR (Architecture Decision Record). Les deux doivent approuver.",
+          "ADR documenté dans Notion / Confluence"
+        ],
+        [
+          "Environnement Docker Compose",
+          "Sofiane définit les services app. Arix définit la sécurité (networks, seccomp, secrets). Merge via PR review.",
+          "PR review par les deux avant merge"
+        ],
+        [
+          "Variables d’environnement / secrets",
+          "Sofiane liste les secrets nécessaires. Arix les provisionne dans Vault. Jamais dans le code ou .env commité.",
+          "Arix valide chaque ajout de secret"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "5.3  Règles d’Or — Ce qui ne se négocie pas"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["#", "Règle absolue"],
+        [
+          "R01",
+          "🔴 Arix ne pousse jamais de code dans les dossiers /api, /services, /frontend, /db/migrations sans PR approuvée par Sofiane."
+        ],
+        [
+          "R02",
+          "🔴 Sofiane ne modifie jamais les configs Nginx, Firewall, TLS, Docker seccomp, MinIO encryption sans PR approuvée par Arix."
+        ],
+        [
+          "R03",
+          "🔴 Aucun secret (password, token, clé privée, certificat) ne se retrouve dans le repo Git. Zéro exception."
+        ],
+        [
+          "R04",
+          "🔴 Tout endpoint API ayant accès à des données sensibles (offres, utilisateurs, audit) passe par une revue sécurité d’Arix avant merge sur develop."
+        ],
+        [
+          "R05",
+          "🔴 Aucun service n’est exposé directement depuis DMZ vers le LAN. Le modèle Pull Only est immuable."
+        ],
+        [
+          "R06",
+          "🔴 Les contrats d’interface sont signés avant que chacun commence son implémentation. On ne code pas sur des interfaces non validées."
+        ],
+        [
+          "R07",
+          "🔴 Tout merge sur main requière que les deux développeurs aient approuvé la PR. Aucune exception."
+        ],
+        [
+          "R08",
+          "🔴 Les dépendances npm/pip sont validées par les deux avant ajout (risque supply chain). Sofiane propose, Arix valide la réputation et les CVE."
+        ],
+        [
+          "R09",
+          "🔴 Chaque tâche a un owner unique. Si une tâche est \"BOTH\", elle a un lead désigné qui est responsable de la livraison."
+        ],
+        [
+          "R10",
+          "🔴 Un blocker non résolu dans les 24h est immédiatement escaladé (session de pair-programming obligatoire)."
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading1",
+      "text": "06  TECH STACK & TOOLING DÉCISIONNEL"
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "6.1  Stack Technique MVP"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Couche", "Technologie", "Owner", "Justification"],
+        [
+          "Runtime Backend",
+          "Node.js 20 LTS + TypeScript",
+          "⚙️ Sofiane",
+          "Performance, typing fort, écosystème riche"
+        ],
+        [
+          "Framework API",
+          "Fastify ou NestJS",
+          "⚙️ Sofiane",
+          "Typage TypeScript natif, DI pattern, modulaire"
+        ],
+        [
+          "Base de données",
+          "PostgreSQL 16 + TDE",
+          "🤝 Les deux",
+          "Robustesse, chiffrement natif, ACID"
+        ],
+        [
+          "Cache / Sessions",
+          "Redis 7 (chiffré en transit)",
+          "🔐 Arix",
+          "Sessions JWT + cache référentiel fournisseur"
+        ],
+        [
+          "Object Storage",
+          "MinIO (SSE-C, AES-256)",
+          "🔐 Arix",
+          "On-premise, S3-compatible, chiffrement"
+        ],
+        [
+          "Message Broker",
+          "RabbitMQ 3.13",
+          "🔐 Arix",
+          "Fiabilité, dead-letter queue, audit trail"
+        ],
+        [
+          "Secret Management",
+          "HashiCorp Vault 1.16",
+          "🔐 Arix",
+          "Zéro secret en clair, rotation automatique"
+        ],
+        [
+          "Frontend",
+          "React 18 + TypeScript + Vite",
+          "⚙️ Sofiane",
+          "Performance, composants réutilisables"
+        ],
+        [
+          "UI Library",
+          "shadcn/ui ou MUI",
+          "⚙️ Sofiane",
+          "Accessibilité, thème professionnel"
+        ],
+        [
+          "Reverse Proxy / WAF",
+          "Nginx 1.25 + ModSecurity v3",
+          "🔐 Arix",
+          "Maturité, règles OWASP CRS"
+        ],
+        [
+          "PKI / Certificats",
+          "EJBCA Community ou Step-CA",
+          "🔐 Arix",
+          "PKI interne on-premise, open-source"
+        ],
+        [
+          "HSM (dév)",
+          "SoftHSM2 (dev) / YubiHSM2 (prod)",
+          "🔐 Arix",
+          "PKCS#11, progressif dev → prod"
+        ],
+        [
+          "Antivirus",
+          "ClamAV + ESET (on-prem)",
+          "🔐 Arix",
+          "Multi-moteur, faux positifs réduits"
+        ],
+        [
+          "SIEM",
+          "Wazuh 4.x + ELK 8.x",
+          "🔐 Arix",
+          "Open-source, OSSEC-based, Kibana"
+        ],
+        [
+          "Monitoring",
+          "Prometheus + Grafana",
+          "🔐 Arix",
+          "Standard industrie, alerting configurable"
+        ],
+        [
+          "Horodatage",
+          "Bouncy Castle RFC 3161 (lib)",
+          "🔐 Arix",
+          "Standard légal certifié"
+        ],
+        [
+          "Conteneurisation",
+          "Docker + Docker Compose",
+          "⚙️ Sofiane",
+          "Reproductibilité env, isolation services"
+        ],
+        [
+          "CI/CD",
+          "GitHub Actions ou GitLab CI",
+          "🤝 Les deux",
+          "Automatisation, scan intégré"
+        ],
+        [
+          "Tests API",
+          "Jest + Supertest",
+          "⚙️ Sofiane",
+          "Intégration native TypeScript"
+        ],
+        [
+          "Scan Sécurité",
+          "OWASP ZAP + Gitleaks + Trufflehog",
+          "🔐 Arix",
+          "DAST + scan secrets dans CI/CD"
+        ],
+        [
+          "Docs API",
+          "Swagger / OpenAPI 3.1",
+          "⚙️ Sofiane",
+          "Standard industrie, auto-généré"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "6.2  Structure du Repository Git"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Dossier", "Owner", "Contenu"],
+        [
+          "/infra/",
+          "🔐 Arix",
+          "Docker Compose, configs Nginx, Firewall rules, TLS certs (chiffrés), Vault config"
+        ],
+        [
+          "/infra/security/",
+          "🔐 Arix",
+          "WAF rules, seccomp profiles, hardening scripts, scan configs"
+        ],
+        [
+          "/infra/monitoring/",
+          "🔐 Arix",
+          "Prometheus config, Grafana dashboards, alertes, Wazuh rules"
+        ],
+        [
+          "/backend/",
+          "⚙️ Sofiane",
+          "Services Node.js/TypeScript (API, métier, auth, notifications)"
+        ],
+        [
+          "/backend/shared/",
+          "🤝 Les deux",
+          "Shared lib : logger structuré, types communs, contrats d’interface"
+        ],
+        [
+          "/frontend/",
+          "⚙️ Sofiane",
+          "Application React (interface interne + portail fournisseur)"
+        ],
+        [
+          "/database/",
+          "⚙️ Sofiane (schéma) / 🔐 Arix (sécu)",
+          "Migrations PostgreSQL, schéma, seeds"
+        ],
+        [
+          "/contracts/",
+          "🤝 Les deux",
+          "Contrats OpenAPI signés, README des interfaces partagées"
+        ],
+        [
+          "/docs/",
+          "🤝 Les deux",
+          "ADR, architecture, runbooks, guides utilisateur"
+        ],
+        [
+          "/scripts/",
+          "🤝 Les deux",
+          "Scripts de déploiement, utilitaires, génération certificats"
+        ],
+        [
+          "/tests/",
+          "🤝 Les deux",
+          "Tests d’intégration E2E, tests de charge (k6)"
+        ],
+        [
+          "/.github/workflows/",
+          "⚙️ Sofiane (pipeline) / 🔐 Arix (steps scan)",
+          "CI/CD GitHub Actions"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading1",
+      "text": "07  KPIs, MÉTRIQUES & CRITÈRES DE SUCCÈS MVP"
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "7.1  Métriques Techniques"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Métrique", "Owner", "Cible MVP", "Outil de mesure"],
+        [
+          "Couverture tests unitaires backend",
+          "⚙️ Sofiane",
+          "≥ 80%",
+          "Jest / Istanbul"
+        ],
+        ["Temps de réponse API (p95)", "⚙️ Sofiane", "< 500ms", "Grafana + k6"],
+        [
+          "Temps de traitement upload offre",
+          "🔐 Arix",
+          "< 30s",
+          "Logs Prometheus"
+        ],
+        [
+          "Vulnérabilités OWASP critiques/hautes",
+          "🔐 Arix",
+          "0 non traitée",
+          "OWASP ZAP"
+        ],
+        ["Secrets dans le repo Git", "🤝 Les deux", "0 (zéro)", "Gitleaks CI"],
+        [
+          "Disponibilité environnement staging",
+          "🔐 Arix",
+          "≥ 99%",
+          "Blackbox Exporter"
+        ],
+        ["Temps de build CI/CD", "⚙️ Sofiane", "< 10 min", "GitHub Actions"],
+        [
+          "Toutes PR avec revue croisée",
+          "🤝 Les deux",
+          "100%",
+          "GitHub Insights"
+        ],
+        [
+          "Issues fermées dans le sprint",
+          "🤝 Les deux",
+          "≥ 85%",
+          "GitHub Projects"
+        ],
+        [
+          "Blockers résolus en < 24h",
+          "🤝 Les deux",
+          "100%",
+          "Daily Standup log"
+        ]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "7.2  Critères de Succès MVP (Go/No-Go)"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Le MVP est validé si et seulement si TOUS les critères P0 sont satisfaits :"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["#", "Critère Go/No-Go", "Vérifié par", "Statut"],
+        [
+          "1",
+          "Flux complet besoin → RFQ → portail → dépôt → scellage démontrable en environnement staging",
+          "BOTH",
+          "TODO"
+        ],
+        [
+          "2",
+          "Coffre-fort validé : accès à une offre avant deadline est techniquement impossible",
+          "ARIX",
+          "TODO"
+        ],
+        [
+          "3",
+          "Scan AV + sandbox opérationnels : fichier malveillant isolé avec alerte",
+          "ARIX",
+          "TODO"
+        ],
+        [
+          "4",
+          "Aucune vulnérabilité OWASP critique ou haute non traitée sur le portail fournisseur",
+          "ARIX",
+          "TODO"
+        ],
+        [
+          "5",
+          "TLS 1.3 validé sur tous les endpoints (test SSL Labs / testssl.sh)",
+          "ARIX",
+          "TODO"
+        ],
+        [
+          "6",
+          "Auth et RBAC : impossible d’accéder à un module non autorisé (test contournement)",
+          "ARIX",
+          "TODO"
+        ],
+        [
+          "7",
+          "Zéro secret en clair dans le repo (scan Gitleaks — zéro résultat)",
+          "BOTH",
+          "TODO"
+        ],
+        [
+          "8",
+          "Tous les événements critiques sont journalisés et consultables dans ELK",
+          "ARIX",
+          "TODO"
+        ],
+        [
+          "9",
+          "Performance : p95 < 500ms en charge nominale (100 users simultanés)",
+          "SOFIANE",
+          "TODO"
+        ],
+        [
+          "10",
+          "Documentation API Swagger complète et correcte (0 endpoint non documenté)",
+          "SOFIANE",
+          "TODO"
+        ],
+        ["11", "PV de recette signé par les deux développeurs", "BOTH", "TODO"]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": "Heading2",
+      "text": "7.3  Dashboard de Suivi Sprint"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Ce tableau est mis à jour à chaque Daily Standup et partagé dans Notion / GitHub Projects :"
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Module", "🔐 Arix", "⚙️ Sofiane", "Intégration", "Tests"],
+        ["Infra & Auth", "⏳ En cours", "⏳ En cours", "⬜ TODO", "⬜ TODO"],
+        ["Expression du Besoin", "⬜ TODO", "⬜ TODO", "⬜ TODO", "⬜ TODO"],
+        ["RFQ & Publication", "⬜ TODO", "⬜ TODO", "⬜ TODO", "⬜ TODO"],
+        ["Portail Fournisseur", "⬜ TODO", "⬜ TODO", "⬜ TODO", "⬜ TODO"],
+        ["Dépôt Sécurisé", "⬜ TODO", "⬜ TODO", "⬜ TODO", "⬜ TODO"],
+        ["Deadlines & Lock", "⬜ TODO", "⬜ TODO", "⬜ TODO", "⬜ TODO"],
+        ["Audit & Logs", "⬜ TODO", "⬜ TODO", "⬜ TODO", "⬜ TODO"],
+        ["Notifications", "⬜ TODO", "⬜ TODO", "⬜ TODO", "⬜ TODO"]
+      ]
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "— Fin du Plan d’Exécution MVP PROCURA —"
+    },
+    {
+      "type": "paragraph",
+      "style": null,
+      "text": "Version 1.0 — Document confidentiel équipe PROCURA"
+    }
+  ]
+}

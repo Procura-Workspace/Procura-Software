@@ -1,0 +1,41 @@
+name: "🛡️ Security Issue / Vulnerability"
+description: "Report a security vulnerability (will be handled with high priority)"
+title: "[SEC] "
+labels: ["security", "critical"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **IMPORTANT WARNING**: Please do not publish sensitive security vulnerabilities on open public trackers. If the repository is public, ensure this issue is submitted privately if GitHub supports it, or contact Arix/Sofiane directly.
+  - type: dropdown
+    id: severity
+    attributes:
+      label: CVSS Severity
+      options:
+        - Critical (CVSS 9.0 - 10.0)
+        - High (CVSS 7.0 - 8.9)
+        - Medium (CVSS 4.0 - 6.9)
+        - Low (CVSS 0.1 - 3.9)
+    validations:
+      required: true
+  - type: textarea
+    id: vulnerability
+    attributes:
+      label: Vulnerability Details
+      description: Description of the security issue, affected component, and how it compromises system security.
+    validations:
+      required: true
+  - type: textarea
+    id: poc
+    attributes:
+      label: Proof of Concept (PoC)
+      description: Code snippet, request payload, or steps to reproduce the vulnerability.
+    validations:
+      required: true
+  - type: textarea
+    id: remediation
+    attributes:
+      label: Suggested Remediation
+      description: How to fix the vulnerability (e.g. library upgrade, input sanitization, network rules modification).
+    validations:
+      required: false
