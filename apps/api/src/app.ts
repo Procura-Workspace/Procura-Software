@@ -32,15 +32,19 @@ import { registerSupplierPortalRoutes } from "./modules/supplierPortal/supplierP
 import { SupplierPortalService } from "./modules/supplierPortal/supplierPortal.service.js";
 import { registerTicketsRoutes } from "./modules/tickets/tickets.routes.js";
 import { TicketsService } from "./modules/tickets/tickets.service.js";
+import { registerAuthRoutes } from "./modules/auth/auth.routes.js";
+import { AuthService } from "./modules/auth/auth.service.js";
+import swagger from "@fastify/swagger";
+import swaggerUi from "@fastify/swagger-ui";
 
 export async function buildApp() {
   const env = loadEnv();
   const app = Fastify({
     logger: {
       level: env.NODE_ENV === "production" ? "info" : "debug",
-      redact: ["req.headers.authorization", "req.headers.cookie"]
+      redact: ["req.headers.authorization", "req.headers.cookie"],
     },
-    trustProxy: true
+    trustProxy: true,
   });
 
   await app.register(helmet, {
@@ -48,39 +52,75 @@ export async function buildApp() {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'none'"],
-        frameAncestors: ["'none'"]
-      }
-    }
+        frameAncestors: ["'none'"],
+      },
+    },
   });
 
   await app.register(cors, {
     origin: env.WEB_ORIGIN,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
 
   await app.register(rateLimit, {
     max: 150,
-    timeWindow: "1 minute"
+    timeWindow: "1 minute",
+  });
+
+  await app.register(swagger, {
+    openapi: {
+      info: {
+        title: "Procura S2C API",
+        description: "API de la plateforme Source-to-Contract Procura",
+        version: "0.1.0",
+      },
+      servers: [
+        {
+          url: `http://${env.API_HOST}:${env.API_PORT}`,
+          description: "Serveur de développement local",
+        },
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+        },
+      },
+    },
+  });
+
+  await app.register(swaggerUi, {
+    routePrefix: "/docs",
+    uiConfig: {
+      docExpansion: "list",
+      deepLinking: false,
+    },
   });
 
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof ZodError) {
       return reply.code(400).send({
         error: "VALIDATION_ERROR",
-        issues: error.issues
+        issues: error.issues,
       });
     }
 
     app.log.error(error);
     return reply.code(500).send({
       error: "INTERNAL_ERROR",
-      message: "Erreur interne"
+      message: "Erreur interne",
     });
   });
 
   const store = createStore();
   const audit = new AuditService(store, env.AUDIT_HASH_PEPPER);
+  const auth = new AuthService();
+
+  await registerAuthRoutes(app, auth);
 
   await registerHealthRoutes(app);
   await registerMonitoringRoutes(app, new MonitoringService(store));
@@ -94,7 +134,10 @@ export async function buildApp() {
   await registerOutputsRoutes(app, new OutputsService(store, audit));
   await registerComparisonRoutes(app, new ComparisonService(store, audit));
   await registerTicketsRoutes(app, new TicketsService(store, audit));
-  await registerSupplierPortalRoutes(app, new SupplierPortalService(store, audit));
+  await registerSupplierPortalRoutes(
+    app,
+    new SupplierPortalService(store, audit),
+  );
   await registerSettingsRoutes(app, new SettingsService(store));
 
   return app;

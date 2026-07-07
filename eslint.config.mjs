@@ -23,12 +23,14 @@ export default tseslint.config(
       ...reactPlugin.configs.recommended.rules,
       ...hooksPlugin.configs.recommended.rules,
       "react/react-in-jsx-scope": "off", // Not needed in React 17+ / React 19
+      "react/prop-types": "off", // TypeScript handles props type safety
+      "react/no-unescaped-entities": "off", // Allow standard quotes in JSX
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
     },
     settings: {
       react: {
-        version: "detect",
+        version: "19.0.0",
       },
     },
   },

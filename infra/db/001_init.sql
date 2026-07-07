@@ -24,6 +24,7 @@ create table users (
   role_code text not null references roles(role_code),
   department_id uuid references departments(department_id),
   is_active boolean not null default true,
+  password_hash text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
