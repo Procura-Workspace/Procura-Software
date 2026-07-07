@@ -117,7 +117,7 @@ export async function buildApp() {
   });
 
   const store = createStore();
-  const audit = new AuditService(store, env.AUDIT_HASH_PEPPER);
+  const audit = new AuditService(env.AUDIT_HASH_PEPPER);
   const auth = new AuthService();
 
   await registerAuthRoutes(app, auth);
@@ -125,8 +125,8 @@ export async function buildApp() {
   await registerHealthRoutes(app);
   await registerMonitoringRoutes(app, new MonitoringService(store));
   await registerAuditRoutes(app, audit);
-  await registerAdminRoutes(app, new AdminService(store, audit));
-  await registerNeedsRoutes(app, new NeedsService(store, audit));
+  await registerAdminRoutes(app, new AdminService(audit));
+  await registerNeedsRoutes(app, new NeedsService(audit));
   await registerSuppliersRoutes(app, new SuppliersService(store));
   await registerRfqRoutes(app, new RfqService(store, audit));
   await registerSubmissionsRoutes(app, new SubmissionsService(store, audit));

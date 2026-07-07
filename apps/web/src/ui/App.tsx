@@ -18,6 +18,7 @@ import { SupplierPortalPage } from "./pages/SupplierPortalPage.js";
 import { SuppliersPage } from "./pages/SuppliersPage.js";
 import { TicketsPage } from "./pages/TicketsPage.js";
 import { UsersAdminPage } from "./pages/UsersAdminPage.js";
+import { LoginPage } from "./pages/LoginPage.js";
 import type { AppData, AppRole, NavigationState } from "./types.js";
 
 const emptyData: AppData = {
@@ -31,7 +32,7 @@ const emptyData: AppData = {
     criticalAlerts: 0,
     auditEvents: 0,
     erpExports: 0,
-    openTickets: 0
+    openTickets: 0,
   },
   alerts: [],
   needs: [],
@@ -53,18 +54,28 @@ const emptyData: AppData = {
     autoLockOnDeadline: true,
     enableSandboxAnalysis: true,
     enableWormArchive: true,
-    language: "fr"
+    language: "fr",
   },
   comparisonByRfq: {},
   submissionsByRfq: {},
   openRfqsForSuppliers: [],
-  supplierSubmissions: []
+  supplierSubmissions: [],
 };
 
 function initialRole(): AppRole {
   if (typeof window === "undefined") return "buyer";
   const stored = window.localStorage.getItem("procura-role") as AppRole | null;
-  if (stored && ["buyer", "requester", "supplier", "commissionMember", "administrator", "auditor"].includes(stored)) {
+  if (
+    stored &&
+    [
+      "buyer",
+      "requester",
+      "supplier",
+      "commissionMember",
+      "administrator",
+      "auditor",
+    ].includes(stored)
+  ) {
     return stored;
   }
   return "buyer";
@@ -72,16 +83,31 @@ function initialRole(): AppRole {
 
 export function App() {
   const [role, setRole] = useState<AppRole>(initialRole);
-  const [navigation, setNavigation] = useState<NavigationState>({ view: "dashboard" });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return (
+      typeof window !== "undefined" &&
+      !!window.localStorage.getItem("procura_token")
+    );
+  });
+  const [navigation, setNavigation] = useState<NavigationState>({
+    view: "dashboard",
+  });
   const [data, setData] = useState<AppData>(emptyData);
-  const [toast, setToast] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+  const [toast, setToast] = useState<{
+    tone: "success" | "error";
+    message: string;
+  } | null>(null);
 
-  const showToast = useCallback((tone: "success" | "error", message: string) => {
-    setToast({ tone, message });
-    window.setTimeout(() => setToast(null), 4_000);
-  }, []);
+  const showToast = useCallback(
+    (tone: "success" | "error", message: string) => {
+      setToast({ tone, message });
+      window.setTimeout(() => setToast(null), 4_000);
+    },
+    [],
+  );
 
   const loadData = useCallback(async () => {
+    if (!isAuthenticated) return;
     try {
       const [
         dashboard,
@@ -97,7 +123,7 @@ export function App() {
         tickets,
         notifications,
         settings,
-        users
+        users,
       ] = await Promise.all([
         procuraApi.dashboard(),
         procuraApi.alerts(),
@@ -112,15 +138,15 @@ export function App() {
         procuraApi.tickets(),
         procuraApi.notifications(),
         procuraApi.settings(),
-        procuraApi.users()
+        procuraApi.users(),
       ]);
 
       const submissionsByRfq: Record<string, Submission[]> = {};
       const rfqIds = rfqs.map((r) => r.id);
       const perRfq = await Promise.all(
         rfqIds.map((id) =>
-          procuraApi.rfqSubmissions(id).catch(() => [] as Submission[])
-        )
+          procuraApi.rfqSubmissions(id).catch(() => [] as Submission[]),
+        ),
       );
       rfqIds.forEach((id, idx) => {
         submissionsByRfq[id] = perRfq[idx] ?? [];
@@ -128,17 +154,21 @@ export function App() {
 
       const comparisonByRfq: Record<string, ComparisonRow[]> = {};
       const comparisons = await Promise.all(
-        rfqIds.map((id) => procuraApi.comparison(id).catch(() => [] as ComparisonRow[]))
+        rfqIds.map((id) =>
+          procuraApi.comparison(id).catch(() => [] as ComparisonRow[]),
+        ),
       );
       rfqIds.forEach((id, idx) => {
         comparisonByRfq[id] = comparisons[idx] ?? [];
       });
 
       const openRfqsForSuppliers = rfqs.filter(
-        (r) => r.status === "published" && new Date(r.deadlineAt).getTime() > Date.now()
+        (r) =>
+          r.status === "published" &&
+          new Date(r.deadlineAt).getTime() > Date.now(),
       );
       const supplierSubmissions = submissions.filter(
-        (s) => s.supplierId === "00000000-0000-4000-8000-00000201"
+        (s) => s.supplierId === "00000000-0000-4000-8000-00000201",
       );
 
       setData({
@@ -159,7 +189,7 @@ export function App() {
         comparisonByRfq,
         submissionsByRfq,
         openRfqsForSuppliers,
-        supplierSubmissions
+        supplierSubmissions,
       });
     } catch (error) {
       console.error("Procura data load failed", error);
@@ -169,10 +199,13 @@ export function App() {
 
   // Initial load + re-load on role change + re-load on mock backend mutation
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    if (isAuthenticated) {
+      void loadData();
+    }
+  }, [loadData, isAuthenticated]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     const handleRoleChanged = () => {
       void loadData();
       setNavigation({ view: "dashboard" });
@@ -190,7 +223,7 @@ export function App() {
       window.removeEventListener("storage", handleStorage);
       unsubscribe();
     };
-  }, [loadData]);
+  }, [loadData, isAuthenticated]);
 
   const actions = useMemo(
     () => ({
@@ -328,9 +361,14 @@ export function App() {
           await procuraApi.createTicket({
             rfqId: null,
             supplierId: null,
-            category: (input.category as "administrative" | "documentation" | "technical" | "delivery") ?? "administrative",
+            category:
+              (input.category as
+                | "administrative"
+                | "documentation"
+                | "technical"
+                | "delivery") ?? "administrative",
             subject: input.subject,
-            body: input.body
+            body: input.body,
           });
           await loadData();
           showToast("success", "Ticket cree.");
@@ -369,7 +407,7 @@ export function App() {
             mimeType: "application/pdf",
             sizeBytes: 0,
             financialOffer: input.amount,
-            currency: "DZD"
+            currency: "DZD",
           });
           await loadData();
           showToast("success", "Offre deposee et scellee dans le coffre-fort.");
@@ -388,7 +426,7 @@ export function App() {
             displayName: input.fullName,
             email: input.email,
             role: input.role,
-            department: input.organization
+            department: input.organization,
           });
           await loadData();
           showToast("success", "Utilisateur cree.");
@@ -422,9 +460,9 @@ export function App() {
         } catch (error) {
           showToast("error", (error as Error).message);
         }
-      }
+      },
     }),
-    [loadData, showToast]
+    [loadData, showToast],
   );
 
   const visibleRole: AppRole = role;
@@ -434,10 +472,58 @@ export function App() {
     "supplier",
     "commissionMember",
     "administrator",
-    "auditor"
+    "auditor",
   ];
 
-  const openRfqDetail = (rfqId: string) => setNavigation({ view: "rfqDetail", rfqId });
+  const openRfqDetail = (rfqId: string) =>
+    setNavigation({ view: "rfqDetail", rfqId });
+
+  const handleLogout = useCallback(async () => {
+    try {
+      const refreshToken =
+        window.localStorage.getItem("procura_refresh_token") || "";
+      await fetch("http://127.0.0.1:8080/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${window.localStorage.getItem("procura_token")}`,
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch (e) {
+      console.error("Logout request failed:", e);
+    } finally {
+      window.localStorage.removeItem("procura_token");
+      window.localStorage.removeItem("procura_refresh_token");
+      window.localStorage.removeItem("procura-role");
+      window.localStorage.removeItem("procura-user-id");
+      setIsAuthenticated(false);
+      showToast("success", "Déconnecté avec succès.");
+    }
+  }, [showToast]);
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <LoginPage
+          onLoginSuccess={(token, refreshToken, user) => {
+            window.localStorage.setItem("procura_token", token);
+            window.localStorage.setItem("procura_refresh_token", refreshToken);
+            window.localStorage.setItem("procura-role", user.role);
+            window.localStorage.setItem("procura-user-id", user.id);
+            setRole(user.role as AppRole);
+            setIsAuthenticated(true);
+          }}
+          showToast={showToast}
+        />
+        {toast && (
+          <div className={`toast ${toast.tone}`} role="status">
+            {toast.message}
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <Shell
@@ -452,20 +538,31 @@ export function App() {
       onNavigate={setNavigation}
       notificationsCount={data.notifications.filter((n) => !n.read).length}
       alertsCount={data.alerts.filter((a) => a.severity !== "info").length}
+      onLogout={handleLogout}
     >
       {navigation.view === "dashboard" && (
         <DashboardPage
           data={data}
           role={visibleRole}
           onOpenRfq={openRfqDetail}
-          onNavigate={(v) => setNavigation({ view: v } as Exclude<NavigationState, { view: "rfqDetail" }>)}
+          onNavigate={(v) =>
+            setNavigation({ view: v } as Exclude<
+              NavigationState,
+              { view: "rfqDetail" }
+            >)
+          }
         />
       )}
       {navigation.view === "needs" && (
         <NeedsPage data={data} role={visibleRole} actions={actions} />
       )}
       {navigation.view === "rfqs" && (
-        <RfqsPage data={data} role={visibleRole} actions={actions} onOpenRfq={openRfqDetail} />
+        <RfqsPage
+          data={data}
+          role={visibleRole}
+          actions={actions}
+          onOpenRfq={openRfqDetail}
+        />
       )}
       {navigation.view === "rfqDetail" && (
         <RfqDetailPage
@@ -478,22 +575,40 @@ export function App() {
       )}
       {navigation.view === "suppliers" && <SuppliersPage data={data} />}
       {navigation.view === "submissions" && (
-        <SubmissionsPage data={data} role={visibleRole} onOpenRfq={openRfqDetail} />
+        <SubmissionsPage
+          data={data}
+          role={visibleRole}
+          onOpenRfq={openRfqDetail}
+        />
       )}
       {navigation.view === "commission" && (
-        <CommissionPage data={data} role={visibleRole} onOpenRfq={openRfqDetail} />
+        <CommissionPage
+          data={data}
+          role={visibleRole}
+          onOpenRfq={openRfqDetail}
+        />
       )}
       {navigation.view === "analysis" && (
-        <ComparisonPage data={data} role={visibleRole} onOpenRfq={openRfqDetail} />
+        <ComparisonPage
+          data={data}
+          role={visibleRole}
+          onOpenRfq={openRfqDetail}
+        />
       )}
-      {navigation.view === "outputs" && <OutputsPage data={data} actions={actions} />}
+      {navigation.view === "outputs" && (
+        <OutputsPage data={data} actions={actions} />
+      )}
       {navigation.view === "tickets" && (
         <TicketsPage data={data} actions={actions} />
       )}
       {navigation.view === "audit" && <AuditPage data={data} />}
       {navigation.view === "monitoring" && <MonitoringPage data={data} />}
-      {navigation.view === "admin" && <UsersAdminPage data={data} actions={actions} />}
-      {navigation.view === "settings" && <SettingsPage data={data} actions={actions} />}
+      {navigation.view === "admin" && (
+        <UsersAdminPage data={data} actions={actions} />
+      )}
+      {navigation.view === "settings" && (
+        <SettingsPage data={data} actions={actions} />
+      )}
       {navigation.view === "supplierPortal" && (
         <SupplierPortalPage data={data} actions={actions} />
       )}

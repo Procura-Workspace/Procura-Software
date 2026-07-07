@@ -1,16 +1,3 @@
-// ============================================================================
-// Procura Web API client
-// ----------------------------------------------------------------------------
-// The web app runs as a STANDALONE maquette by default — every call below is
-// resolved locally by the mock backend in `../data/mockBackend.ts` so the
-// frontend can be demoed, screenshotted, or used as a UX reference without
-// the real API running.
-//
-// When the real backend is ready, point VITE_API_URL to it and flip
-// `USE_REAL_API` to `true` (or remove the flag) — the call signatures stay
-// identical.
-// ============================================================================
-
 import type {
   AuditEvent,
   CommissionDecision,
@@ -26,71 +13,42 @@ import type {
   SystemAlert,
   Ticket,
   User,
-  RoleCode
+  RoleCode,
 } from "@procura/shared";
-import { mockApi } from "../data/mockBackend.js";
 
-// ---- Actor context (role + userId) -----------------------------------------
-//
-// The standalone mock layer mirrors the backend's x-procura-* headers so that
-// every call site can later be swapped for HTTP without changing callers.
+const BASE_URL = "http://127.0.0.1:8080";
 
-const ROLE_KEY = "procura-role";
-const USER_KEY = "procura-user-id";
+async function requestHttp<T = any>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token = window.localStorage.getItem("procura_token");
+  const headers = new Headers(options.headers || {});
 
-const roleMap: Record<string, RoleCode> = {
-  buyer: "buyer",
-  requester: "requester",
-  supplier: "supplier",
-  commissionMember: "commissionMember",
-  administrator: "administrator",
-  auditor: "auditor"
-};
-
-function seedUserForRole(role: RoleCode): string {
-  switch (role) {
-    case "buyer":
-      return "00000000-0000-4000-8000-000000000001";
-    case "requester":
-      return "00000000-0000-4000-8000-000000000002";
-    case "commissionMember":
-      return "00000000-0000-4000-8000-000000000003";
-    case "administrator":
-      return "00000000-0000-4000-8000-000000000007";
-    case "auditor":
-      return "00000000-0000-4000-8000-000000000008";
-    case "supplier":
-      return "00000000-0000-4000-8000-00000201";
-    case "erpSystem":
-      return "00000000-0000-4000-8000-000000000099";
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
-}
 
-function readActor(): { role: RoleCode; userId: string } {
-  if (typeof window === "undefined") {
-    return { role: "buyer", userId: seedUserForRole("buyer") };
+  if (!(options.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
   }
-  const rawRole = window.localStorage.getItem(ROLE_KEY) ?? "buyer";
-  const role = roleMap[rawRole] ?? "buyer";
-  let userId = window.localStorage.getItem(USER_KEY);
-  if (!userId) {
-    userId = seedUserForRole(role);
-    window.localStorage.setItem(USER_KEY, userId);
+
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  if (res.status === 204) {
+    return {} as T;
   }
-  return { role, userId };
-}
 
-export function setActorRole(role: string, userId?: string) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(ROLE_KEY, role);
-  const resolvedRole = roleMap[role] ?? "buyer";
-  window.localStorage.setItem(USER_KEY, userId ?? seedUserForRole(resolvedRole));
-  window.dispatchEvent(new CustomEvent("procura:role-changed"));
-}
+  const body = await res.json();
+  if (!res.ok) {
+    throw new Error(body.message || "Erreur de communication avec le serveur");
+  }
 
-// ============================================================================
-// Client surface — mirrors the real REST endpoints
-// ============================================================================
+  return body.data !== undefined ? body.data : body;
+}
 
 export type SupplierPortalDashboard = {
   openRfqs: Rfq[];
@@ -116,63 +74,54 @@ export type PvPayload = {
 export const procuraApi = {
   // ---------- Reads ----------
 
-  dashboard: (): Promise<Dashboard> => mockApi.dashboard(readActor()),
+  dashboard: (): Promise<Dashboard> => requestHttp("/monitoring/dashboard"),
 
-  alerts: (): Promise<SystemAlert[]> => mockApi.alerts(readActor()),
+  alerts: (): Promise<SystemAlert[]> => requestHttp("/monitoring/alerts"),
 
-  needs: (): Promise<Need[]> => mockApi.needs(readActor()),
+  needs: (): Promise<Need[]> => requestHttp("/needs"),
 
-  need: async (id: string): Promise<Need | null> => {
-    const list = await mockApi.needs(readActor());
-    return list.find((n) => n.id === id) ?? null;
-  },
+  need: (id: string): Promise<Need | null> => requestHttp(`/needs/${id}`),
 
-  suppliers: (): Promise<Supplier[]> => mockApi.suppliers(readActor()),
+  suppliers: (): Promise<Supplier[]> => requestHttp("/suppliers"),
 
-  rfqs: (): Promise<Rfq[]> => mockApi.rfqs(readActor()),
+  rfqs: (): Promise<Rfq[]> => requestHttp("/rfqs"),
 
-  rfq: async (id: string): Promise<Rfq | null> => {
-    const list = await mockApi.rfqs(readActor());
-    return list.find((r) => r.id === id) ?? null;
-  },
+  rfq: (id: string): Promise<Rfq | null> => requestHttp(`/rfqs/${id}`),
 
-  submissions: (): Promise<Submission[]> => mockApi.submissions(readActor()),
+  submissions: (): Promise<Submission[]> => requestHttp("/submissions"),
 
   rfqSubmissions: (id: string): Promise<Submission[]> =>
-    mockApi.rfqSubmissions(readActor(), id),
+    requestHttp(`/submissions/rfq/${id}`),
 
-  decisions: (): Promise<CommissionDecision[]> => mockApi.decisions(readActor()),
+  decisions: (): Promise<CommissionDecision[]> =>
+    requestHttp("/commission-decisions"),
 
-  outputs: (): Promise<FinalOutput[]> => mockApi.outputs(readActor()),
+  outputs: (): Promise<FinalOutput[]> => requestHttp("/outputs"),
 
-  auditEvents: (): Promise<AuditEvent[]> => mockApi.auditEvents(readActor()),
+  auditEvents: (): Promise<AuditEvent[]> => requestHttp("/audit-events"),
 
-  auditVerify: () => mockApi.auditVerify(readActor()),
+  auditVerify: () => requestHttp("/audit/verify"),
 
   comparison: (id: string): Promise<ComparisonRow[]> =>
-    mockApi.comparison(readActor(), id),
+    requestHttp(`/comparison/${id}`),
 
-  tickets: (): Promise<Ticket[]> => mockApi.tickets(readActor()),
+  tickets: (): Promise<Ticket[]> => requestHttp("/tickets"),
 
   notifications: (): Promise<ProcuraNotification[]> =>
-    mockApi.notifications(readActor()),
+    requestHttp("/notifications"),
 
-  settings: (): Promise<PlatformSettings> => mockApi.settings(readActor()),
+  settings: (): Promise<PlatformSettings> => requestHttp("/settings"),
 
-  users: (): Promise<User[]> => mockApi.users(readActor()),
+  users: (): Promise<User[]> => requestHttp("/admin/users"),
 
   portalDashboard: (): Promise<SupplierPortalDashboard> =>
-    mockApi.portalDashboard(readActor()),
+    requestHttp("/supplier-portal/dashboard"),
 
   portalRfq: async (id: string): Promise<SupplierPortalDetail> => {
-    const actor = readActor();
-    const { openRfqs, mySubmissions } = await mockApi.portalDashboard(actor);
-    const rfq = openRfqs.find((r) => r.id === id) ?? null;
-    return {
-      rfq,
-      alreadySubmitted: mySubmissions.some((s) => s.rfqId === id),
-      deadlinePassed: rfq ? new Date(rfq.deadlineAt).getTime() < Date.now() : true
-    };
+    const detail: SupplierPortalDetail = await requestHttp(
+      `/supplier-portal/rfq/${id}`,
+    );
+    return detail;
   },
 
   // ---------- Mutations: needs ----------
@@ -184,21 +133,32 @@ export const procuraApi = {
     estimatedBudget: number;
     currency: string;
     priority: string;
-  }) => mockApi.createNeed(readActor(), input),
+  }) =>
+    requestHttp("/needs", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 
-  submitNeed: (id: string) => mockApi.submitNeed(readActor(), id),
+  submitNeed: (id: string) =>
+    requestHttp(`/needs/${id}/submit`, { method: "POST" }),
 
-  approveNeed: (id: string) => mockApi.approveNeed(readActor(), id),
+  approveNeed: (id: string) =>
+    requestHttp(`/needs/${id}/approve`, { method: "POST" }),
 
   rejectNeed: (id: string, reason: string) =>
-    mockApi.rejectNeed(readActor(), id, reason),
+    requestHttp(`/needs/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
 
   // ---------- Mutations: RFQ ----------
 
-  publishRfq: (id: string) => mockApi.publishRfq(readActor(), id),
-  lockRfq: (id: string) => mockApi.lockRfq(readActor(), id),
-  openRfq: (id: string) => mockApi.openRfq(readActor(), id),
-  commissionReviewRfq: (id: string) => mockApi.openSubmissions(readActor(), id),
+  publishRfq: (id: string) =>
+    requestHttp(`/rfqs/${id}/publish`, { method: "POST" }),
+  lockRfq: (id: string) => requestHttp(`/rfqs/${id}/lock`, { method: "POST" }),
+  openRfq: (id: string) => requestHttp(`/rfqs/${id}/open`, { method: "POST" }),
+  commissionReviewRfq: (id: string) =>
+    requestHttp(`/rfqs/${id}/commission-review`, { method: "POST" }),
 
   decide: (input: {
     rfqId: string;
@@ -207,12 +167,19 @@ export const procuraApi = {
     financialScore: number;
     decision: "shortlisted" | "rejected" | "awarded";
     notes: string;
-  }) => mockApi.decide(readActor(), input),
+  }) =>
+    requestHttp("/commission-decisions", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 
-  openSubmissions: (id: string) => mockApi.openSubmissions(readActor(), id),
+  openSubmissions: (id: string) =>
+    requestHttp(`/rfqs/${id}/open-submissions`, { method: "POST" }),
 
-  generateOutput: (id: string) => mockApi.generateOutput(readActor(), id),
-  sendOutput: (id: string) => mockApi.sendOutput(readActor(), id),
+  generateOutput: (id: string) =>
+    requestHttp(`/outputs/${id}/generate`, { method: "POST" }),
+  sendOutput: (id: string) =>
+    requestHttp(`/outputs/${id}/send`, { method: "POST" }),
 
   // ---------- Mutations: tickets ----------
 
@@ -222,10 +189,19 @@ export const procuraApi = {
     category: "administrative" | "documentation" | "technical" | "delivery";
     subject: string;
     body: string;
-  }) => mockApi.createTicket(readActor(), input),
+  }) =>
+    requestHttp("/tickets", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 
-  replyTicket: (id: string, body: string) => mockApi.replyTicket(readActor(), id, body),
-  closeTicket: (id: string) => mockApi.closeTicket(readActor(), id),
+  replyTicket: (id: string, body: string) =>
+    requestHttp(`/tickets/${id}/reply`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    }),
+  closeTicket: (id: string) =>
+    requestHttp(`/tickets/${id}/close`, { method: "POST" }),
 
   // ---------- Mutations: portal ----------
 
@@ -237,23 +213,19 @@ export const procuraApi = {
     sizeBytes: number;
     financialOffer: number;
     currency: string;
-  }) => mockApi.portalSubmit(readActor(), input),
+  }) =>
+    requestHttp("/supplier-portal/submit", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 
   // ---------- PV ----------
 
-  signPv: async (rfqId: string, observations: string): Promise<PvPayload> => {
-    const rfq = await mockApi.signPv(readActor(), rfqId, observations);
-    const decisions = (await mockApi.decisions(readActor())).filter((d) => d.rfqId === rfqId);
-    return {
-      rfqId,
-      reference: rfq.reference,
-      signedBy: readActor().userId,
-      signedAt: new Date().toISOString(),
-      observations,
-      decisions,
-      hash: createHashHex(rfqId + ":" + observations + ":" + Date.now())
-    };
-  },
+  signPv: (rfqId: string, observations: string): Promise<PvPayload> =>
+    requestHttp(`/rfqs/${rfqId}/sign-pv`, {
+      method: "POST",
+      body: JSON.stringify({ observations }),
+    }),
 
   // ---------- Admin ----------
 
@@ -262,32 +234,34 @@ export const procuraApi = {
     email: string;
     role: string;
     department: string;
-  }) => mockApi.createUser(readActor(), { ...input, role: input.role as RoleCode }),
+  }) =>
+    requestHttp("/admin/users", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 
-  toggleUser: (id: string) => mockApi.toggleUser(readActor(), id),
+  toggleUser: (id: string) =>
+    requestHttp(`/admin/users/${id}/toggle`, { method: "POST" }),
 
   updateSettings: (input: Partial<PlatformSettings>) =>
-    mockApi.updateSettings(readActor(), input),
+    requestHttp("/settings", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
 
   // ---------- Dev / demo helpers ----------
 
-  simulateBreach: () => mockApi.simulateBreach(),
+  simulateBreach: () =>
+    requestHttp("/monitoring/simulate-breach", { method: "POST" }),
 
-  resetMockData: () => mockApi.resetData()
+  resetMockData: () =>
+    requestHttp("/monitoring/reset-data", { method: "POST" }),
 };
 
-function createHashHex(input: string): string {
-  let h = 0;
-  for (let i = 0; i < input.length; i++) {
-    h = (h << 5) - h + input.charCodeAt(i);
-    h |= 0;
-  }
-  return ("00000000" + (h >>> 0).toString(16)).slice(-8) + "pv-hash-placeholder";
+export function setActorRole(role: string, userId?: string) {
+  // Keep signature for types/compatibility, but we now rely on real authenticated user profiles.
+  window.dispatchEvent(new CustomEvent("procura:role-changed"));
 }
-
-// ============================================================================
-// Re-exports — keep callers happy
-// ============================================================================
 
 export type {
   AuditEvent,
@@ -303,5 +277,5 @@ export type {
   Supplier,
   SystemAlert,
   Ticket,
-  User
+  User,
 };

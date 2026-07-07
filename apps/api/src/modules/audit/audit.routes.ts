@@ -18,7 +18,7 @@ export async function registerAuditRoutes(
     "/audit/verify",
     { preHandler: requirePermission("audit:read") },
     async () => ({
-      data: audit.verify(),
+      data: await audit.verify(),
     }),
   );
 }

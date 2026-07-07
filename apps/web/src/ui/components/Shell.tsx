@@ -16,7 +16,7 @@ import {
   Settings as SettingsIcon,
   ShieldCheck,
   Users,
-  UploadCloud
+  UploadCloud,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { AppRole, NavigationState, ViewKey } from "../types.js";
@@ -30,20 +30,103 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { key: "dashboard", label: "Tableau de bord", icon: LayoutDashboard, roles: ["requester", "buyer", "supplier", "commissionMember", "administrator", "auditor"] },
-  { key: "needs", label: "Besoins", icon: FileCheck2, roles: ["requester", "buyer", "administrator", "auditor"] },
-  { key: "rfqs", label: "RFQ", icon: Send, roles: ["buyer", "commissionMember", "administrator", "auditor"] },
-  { key: "supplierPortal", label: "Portail fournisseur", icon: UploadCloud, roles: ["supplier"] },
-  { key: "suppliers", label: "Fournisseurs ERP", icon: Building2, roles: ["buyer", "administrator", "auditor"] },
-  { key: "submissions", label: "Coffre-fort", icon: LockKeyhole, roles: ["buyer", "commissionMember", "auditor"] },
-  { key: "commission", label: "Commission", icon: Gavel, roles: ["commissionMember", "buyer", "auditor"] },
-  { key: "analysis", label: "Analyse comparative", icon: LineChart, roles: ["commissionMember", "buyer", "auditor"] },
-  { key: "outputs", label: "Output ERP", icon: Archive, roles: ["buyer", "auditor"] },
-  { key: "tickets", label: "Tickets", icon: Inbox, roles: ["buyer", "commissionMember", "supplier", "administrator", "auditor"] },
-  { key: "monitoring", label: "Monitoring", icon: Monitor, roles: ["administrator", "auditor", "buyer"] },
-  { key: "audit", label: "Audit & chainage", icon: Activity, roles: ["administrator", "auditor"] },
-  { key: "admin", label: "Utilisateurs", icon: Users, roles: ["administrator"] },
-  { key: "settings", label: "Parametres", icon: SettingsIcon, roles: ["administrator"] }
+  {
+    key: "dashboard",
+    label: "Tableau de bord",
+    icon: LayoutDashboard,
+    roles: [
+      "requester",
+      "buyer",
+      "supplier",
+      "commissionMember",
+      "administrator",
+      "auditor",
+    ],
+  },
+  {
+    key: "needs",
+    label: "Besoins",
+    icon: FileCheck2,
+    roles: ["requester", "buyer", "administrator", "auditor"],
+  },
+  {
+    key: "rfqs",
+    label: "RFQ",
+    icon: Send,
+    roles: ["buyer", "commissionMember", "administrator", "auditor"],
+  },
+  {
+    key: "supplierPortal",
+    label: "Portail fournisseur",
+    icon: UploadCloud,
+    roles: ["supplier"],
+  },
+  {
+    key: "suppliers",
+    label: "Fournisseurs ERP",
+    icon: Building2,
+    roles: ["buyer", "administrator", "auditor"],
+  },
+  {
+    key: "submissions",
+    label: "Coffre-fort",
+    icon: LockKeyhole,
+    roles: ["buyer", "commissionMember", "auditor"],
+  },
+  {
+    key: "commission",
+    label: "Commission",
+    icon: Gavel,
+    roles: ["commissionMember", "buyer", "auditor"],
+  },
+  {
+    key: "analysis",
+    label: "Analyse comparative",
+    icon: LineChart,
+    roles: ["commissionMember", "buyer", "auditor"],
+  },
+  {
+    key: "outputs",
+    label: "Output ERP",
+    icon: Archive,
+    roles: ["buyer", "auditor"],
+  },
+  {
+    key: "tickets",
+    label: "Tickets",
+    icon: Inbox,
+    roles: [
+      "buyer",
+      "commissionMember",
+      "supplier",
+      "administrator",
+      "auditor",
+    ],
+  },
+  {
+    key: "monitoring",
+    label: "Monitoring",
+    icon: Monitor,
+    roles: ["administrator", "auditor", "buyer"],
+  },
+  {
+    key: "audit",
+    label: "Audit & chainage",
+    icon: Activity,
+    roles: ["administrator", "auditor"],
+  },
+  {
+    key: "admin",
+    label: "Utilisateurs",
+    icon: Users,
+    roles: ["administrator"],
+  },
+  {
+    key: "settings",
+    label: "Parametres",
+    icon: SettingsIcon,
+    roles: ["administrator"],
+  },
 ];
 
 export function Shell({
@@ -55,7 +138,8 @@ export function Shell({
   onNavigate,
   notificationsCount,
   alertsCount,
-  children
+  onLogout,
+  children,
 }: {
   role: AppRole;
   availableRoles: AppRole[];
@@ -65,6 +149,7 @@ export function Shell({
   onNavigate: (state: NavigationState) => void;
   notificationsCount: number;
   alertsCount: number;
+  onLogout?: () => void;
   children: ReactNode;
 }) {
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
@@ -114,8 +199,34 @@ export function Shell({
             ))}
             <div className="role-menu-hint">
               <LogOut size={14} />
-              <span>Demo MVP : selection libre sans authentification reelle.</span>
+              <span>
+                Demo MVP : selection libre sans authentification reelle.
+              </span>
             </div>
+            {onLogout && (
+              <button
+                type="button"
+                className="role-menu-logout"
+                style={{
+                  color: "#ef4444",
+                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "100%",
+                  padding: "8px",
+                  marginTop: "4px",
+                  gap: "8px",
+                }}
+                onClick={() => {
+                  setRoleMenuOpen(false);
+                  onLogout();
+                }}
+              >
+                <LogOut size={14} />
+                Se déconnecter
+              </button>
+            )}
           </div>
         )}
 
@@ -125,7 +236,12 @@ export function Shell({
               key={item.key}
               className={isActive(item.key) ? "active" : ""}
               type="button"
-              onClick={() => navigate({ view: item.key } as Exclude<NavigationState, { view: "rfqDetail" }>)}
+              onClick={() =>
+                navigate({ view: item.key } as Exclude<
+                  NavigationState,
+                  { view: "rfqDetail" }
+                >)
+              }
             >
               <item.icon size={18} />
               <span>{item.label}</span>
@@ -142,8 +258,8 @@ export function Shell({
         <div className="security-note">
           <ShieldCheck size={18} />
           <span>
-            Defence en profondeur, audit chainable, separation DMZ/LAN, zero trust entre
-            composants. Pret pour validation pre-prod.
+            Defence en profondeur, audit chainable, separation DMZ/LAN, zero
+            trust entre composants. Pret pour validation pre-prod.
           </span>
         </div>
       </aside>

@@ -18,6 +18,9 @@ const envSchema = z.object({
     .string()
     .min(32)
     .default("super-secret-key-that-is-at-least-32-chars-long-change-me"),
+  LDAP_URL: z.string().default("ldaps://localhost:636"),
+  LDAP_BIND_DN: z.string().default("cn=admin,dc=procura,dc=local"),
+  LDAP_BIND_PASSWORD: z.string().default("admin_password"),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
