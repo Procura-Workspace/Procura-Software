@@ -58,7 +58,7 @@ export async function buildApp() {
   });
 
   await app.register(cors, {
-    origin: env.WEB_ORIGIN,
+    origin: env.WEB_ORIGINS.split(",").map((s) => s.trim()),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });

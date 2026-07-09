@@ -23,7 +23,7 @@ export function LoginPage({ onLoginSuccess, showToast }: LoginPageProps) {
 
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:8080/auth/login", {
+      const response = await fetch("http://localhost:8080/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -48,20 +48,11 @@ export function LoginPage({ onLoginSuccess, showToast }: LoginPageProps) {
       <div className="w-full max-w-md rounded-2xl border border-white/40 bg-white/60 p-8 shadow-xl backdrop-blur-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20">
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
+            <img
+              src="/Procura_Logo.png"
+              alt="Procura Logo"
+              className="h-full w-full object-contain rounded-lg"
+            />
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-800">
             Plateforme Procura
