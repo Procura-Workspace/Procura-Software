@@ -13,17 +13,31 @@ export type CurrentUser = {
 
 const roleSet = new Set<string>(roles.map((r) => r.code));
 
-const fallbackUser: CurrentUser = {
-  id: "00000000-0000-4000-8000-000000000001",
-  role: "buyer",
-  displayName: "Amine Acheteur",
-};
-
 export function getCurrentUser(request: FastifyRequest): CurrentUser {
-  // 1. First, check for JWT Authorization Header
+  const parseCookies = (cookieHeader?: string): Record<string, string> => {
+    const cookies: Record<string, string> = {};
+    if (!cookieHeader) return cookies;
+    for (const pair of cookieHeader.split(";")) {
+      const [key, val] = pair.split("=");
+      if (key && val) {
+        cookies[key.trim()] = val.trim();
+      }
+    }
+    return cookies;
+  };
+
+  const cookies = parseCookies(request.headers.cookie);
+  const cookieToken = cookies.procura_token;
+
+  let token: string | undefined;
   const authHeader = request.headers["authorization"];
   if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.substring(7);
+    token = authHeader.substring(7);
+  } else if (cookieToken) {
+    token = cookieToken;
+  }
+
+  if (token) {
     try {
       const decoded = jwt.verify(token, env.JWT_SECRET) as any;
       if (decoded && decoded.sub && roleSet.has(decoded.role)) {
@@ -33,8 +47,11 @@ export function getCurrentUser(request: FastifyRequest): CurrentUser {
           displayName: decoded.name || decoded.email,
         };
       }
-    } catch {
-      // In case of invalid token, fall through to custom headers/fallback
+    } catch (err: any) {
+      const error = new Error(err.message || "Token invalide ou expiré");
+      (error as any).statusCode = 401;
+      error.name = "UNAUTHORIZED";
+      throw error;
     }
   }
 
@@ -43,17 +60,16 @@ export function getCurrentUser(request: FastifyRequest): CurrentUser {
   const role = request.headers["x-procura-role"];
   const displayName = request.headers["x-procura-display-name"];
 
-  if (
-    typeof id !== "string" ||
-    typeof role !== "string" ||
-    !roleSet.has(role)
-  ) {
-    return fallbackUser;
+  if (typeof id === "string" && typeof role === "string" && roleSet.has(role)) {
+    return {
+      id,
+      role: role as RoleCode,
+      displayName: typeof displayName === "string" ? displayName : role,
+    };
   }
 
-  return {
-    id,
-    role: role as RoleCode,
-    displayName: typeof displayName === "string" ? displayName : role,
-  };
+  const error = new Error("Authentification requise");
+  (error as any).statusCode = 401;
+  error.name = "UNAUTHORIZED";
+  throw error;
 }

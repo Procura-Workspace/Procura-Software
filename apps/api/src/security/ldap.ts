@@ -1,5 +1,6 @@
 import ldap from "ldapjs";
 import { loadEnv } from "../config/env.js";
+import { logger } from "../core/logger.js";
 
 const env = loadEnv();
 
@@ -26,13 +27,13 @@ export function authenticateAD(
       });
 
       client.on("error", (err) => {
-        console.error("LDAP connection error:", err);
+        logger.error(err, "LDAP connection error");
         resolve(null);
       });
 
       client.bind(env.LDAP_BIND_DN, env.LDAP_BIND_PASSWORD, (err) => {
         if (err) {
-          console.error("LDAP system bind failed:", err);
+          logger.error(err, "LDAP system bind failed");
           client.destroy();
           return resolve(null);
         }
@@ -48,7 +49,7 @@ export function authenticateAD(
           searchOptions,
           (searchErr, res) => {
             if (searchErr) {
-              console.error("LDAP search failed:", searchErr);
+              logger.error(searchErr, "LDAP search failed");
               client.destroy();
               return resolve(null);
             }
@@ -60,7 +61,7 @@ export function authenticateAD(
             });
 
             res.on("error", (err) => {
-              console.error("LDAP search stream error:", err);
+              logger.error(err, "LDAP search stream error");
               client.destroy();
               resolve(null);
             });
@@ -76,9 +77,9 @@ export function authenticateAD(
               client.bind(userDn, password, (userBindErr) => {
                 client.destroy();
                 if (userBindErr) {
-                  console.error(
-                    "LDAP user password verify failed:",
-                    userBindErr,
+                  logger.warn(
+                    { email, userDn, err: userBindErr.message || userBindErr },
+                    "LDAP user password verify failed",
                   );
                   return resolve(null);
                 }
@@ -108,7 +109,7 @@ export function authenticateAD(
         );
       });
     } catch (e) {
-      console.error("LDAP authenticator exception:", e);
+      logger.error(e, "LDAP authenticator exception");
       resolve(null);
     }
   });

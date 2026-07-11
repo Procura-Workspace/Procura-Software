@@ -1,5 +1,6 @@
 import { Redis } from "ioredis";
 import { loadEnv } from "../config/env.js";
+import { logger } from "./logger.js";
 
 const env = loadEnv();
 
@@ -9,5 +10,5 @@ export const redis = new Redis(env.REDIS_URL, {
 });
 
 redis.on("error", (err: any) => {
-  console.error("Redis connection error:", err);
+  logger.error(err, "Redis connection error");
 });

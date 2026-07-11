@@ -187,9 +187,20 @@ Pour valider l'authentification Active Directory développée par Sofiane sans u
    ```
 2. Démarrez-le :
    ```bash
-   docker compose -f infra/docker-compose.ldap.yml up -d
+    docker compose -f infra/docker-compose.ldap.yml up -d
    ```
 3. Vos variables de configuration dans l'application Fastify pour ce serveur de test seront :
    - `LDAP_URL` : `ldap://localhost:389` (ou `ldaps://localhost:636`)
    - `LDAP_BIND_DN` : `cn=admin,dc=procura,dc=dz`
    - `LDAP_BIND_PASSWORD` : `admin_password`
+
+---
+
+## ✅ Checklist d'Audit de Déploiement VPS (Arix Zone - Juillet 2026)
+
+Avant tout déploiement sur le VPS de production, le responsable sécurité (Arix) doit valider la checklist de conformité infrastructure suivante :
+
+- [ ] **[2026-07-11] Chiffrement PostgreSQL Hôte via LUKS** : La partition contenant les données PostgreSQL (`/var/lib/postgresql/data` sur l'hôte) doit obligatoirement être chiffrée avec LUKS au repos (TDE) conformément à la Partie C du Runbook manuel.
+- [ ] **[2026-07-11] Masquage des Ports Sensibles** : Aucun port de base de données (Postgres, Redis), de messagerie (RabbitMQ) ou d'administration (Vault) ne doit être accessible depuis l'extérieur de l'hôte Docker (utilisation d'expose uniquement dans docker-compose).
+- [ ] **[2026-07-11] Certificats SSL HTTPS Actifs** : Nginx est configuré avec des certificats valides, forçant TLS 1.3 uniquement et interdisant les accès HTTP non sécurisés.
+- [ ] **[2026-07-11] Clé KMS MinIO (SSE-S3)** : La variable `MINIO_KMS_SECRET_KEY` est configurée et stockée dans Vault, et le bucket principal est configuré en mode de chiffrement automatique SSE-S3.

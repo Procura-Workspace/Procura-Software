@@ -1,11 +1,12 @@
 import { useState } from "react";
 
 type LoginPageProps = {
-  onLoginSuccess: (
-    token: string,
-    refreshToken: string,
-    user: { id: string; displayName: string; role: string; email: string },
-  ) => void;
+  onLoginSuccess: (user: {
+    id: string;
+    displayName: string;
+    role: string;
+    email: string;
+  }) => void;
   showToast: (tone: "success" | "error", message: string) => void;
 };
 
@@ -35,7 +36,7 @@ export function LoginPage({ onLoginSuccess, showToast }: LoginPageProps) {
       }
 
       showToast("success", "Connexion réussie !");
-      onLoginSuccess(body.token, body.refreshToken, body.user);
+      onLoginSuccess(body.user);
     } catch (err) {
       showToast("error", (err as Error).message);
     } finally {

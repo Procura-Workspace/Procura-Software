@@ -23,7 +23,32 @@ export class AuthService {
   /**
    * Authenticate a user locally via PostgreSQL or LDAP and issue tokens
    */
-  async login(email: string, password: string): Promise<AuthSession | null> {
+  async login(
+    email: string,
+    password: string,
+    ctx?: { ip: string; log: any },
+  ): Promise<AuthSession | null> {
+    const lockoutKey = `lockout:${email}`;
+    const isLocked = await redis.get(lockoutKey);
+    if (isLocked) {
+      const ttl = await redis.ttl(lockoutKey);
+      const minutes = Math.max(1, Math.ceil(ttl / 60));
+      if (ctx?.log) {
+        ctx.log.error(
+          { email, ip: ctx.ip, ttlSeconds: ttl },
+          "Brute-force lockout active for user",
+        );
+      }
+      const error = new Error(
+        `Compte verrouillé. Veuillez réessayer dans ${minutes} minute(s).`,
+      );
+      (error as any).statusCode = 423;
+      error.name = "LOCKED";
+      throw error;
+    }
+
+    let session: AuthSession | null = null;
+
     // 1. LDAP Active Directory authentication logic for corporate accounts
     if (email.endsWith("@procura.dz") || email.endsWith("@procura.local")) {
       const adUser = await authenticateAD(email, password);
@@ -69,36 +94,72 @@ export class AuthService {
         }
 
         if (user.is_active) {
-          return this.issueTokens(user);
+          session = await this.issueTokens(user);
         }
       }
     }
 
-    // 2. Fallback to Local SQL User authenticate check
-    const res = await db.query(
-      `SELECT user_id, display_name, email, role_code, is_active, password_hash 
-       FROM users 
-       WHERE email = $1`,
-      [email],
-    );
+    // 2. Fallback to Local SQL User authenticate check (if LDAP didn't authenticate)
+    if (!session) {
+      const res = await db.query(
+        `SELECT user_id, display_name, email, role_code, is_active, password_hash 
+         FROM users 
+         WHERE email = $1`,
+        [email],
+      );
 
-    if (res.rows.length === 0) {
-      return null;
+      if (res.rows.length > 0) {
+        const user = res.rows[0];
+        if (user.is_active && user.password_hash) {
+          // Verify Password using PBKDF2
+          const isMatch = this.verifyPassword(password, user.password_hash);
+          if (isMatch) {
+            session = await this.issueTokens(user);
+          }
+        }
+      }
     }
 
-    const user = res.rows[0];
-
-    if (!user.is_active || !user.password_hash) {
-      return null;
+    if (session) {
+      // Clear attempts on success
+      await redis.del(`login_attempts:${email}`);
+      return session;
     }
 
-    // Verify Password using PBKDF2
-    const isMatch = this.verifyPassword(password, user.password_hash);
-    if (!isMatch) {
-      return null;
+    // Increment failed attempts on failure
+    const attemptsKey = `login_attempts:${email}`;
+    const attempts = await redis.incr(attemptsKey);
+    if (attempts === 1) {
+      await redis.expire(attemptsKey, 900); // 15 mins sliding window
     }
 
-    return this.issueTokens(user);
+    if (attempts >= 5) {
+      await redis.set(lockoutKey, "locked", "EX", 900); // 15 mins lockout
+      await redis.del(attemptsKey);
+
+      if (ctx?.log) {
+        ctx.log.error(
+          { email, ip: ctx.ip },
+          "Brute-force lockout triggered for user",
+        );
+      }
+
+      const error = new Error(
+        "Compte verrouillé pour 15 minutes suite à 5 tentatives échouées.",
+      );
+      (error as any).statusCode = 423;
+      error.name = "LOCKED";
+      throw error;
+    }
+
+    if (ctx?.log) {
+      ctx.log.warn(
+        { email, ip: ctx.ip, attempt: attempts },
+        "Failed login attempt",
+      );
+    }
+
+    return null;
   }
 
   /**

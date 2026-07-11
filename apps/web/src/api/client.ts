@@ -18,24 +18,37 @@ import type {
 
 const BASE_URL = "http://localhost:8080";
 
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
+  return null;
+}
+
 async function requestHttp<T = any>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = window.localStorage.getItem("procura_token");
   const headers = new Headers(options.headers || {});
-
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
 
   if (!(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
 
+  // Attach X-CSRF-Token on state-mutating requests
+  const method = (options.method || "GET").toUpperCase();
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const csrfToken = getCookie("procura_csrf");
+    if (csrfToken) {
+      headers.set("X-CSRF-Token", csrfToken);
+    }
+  }
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers,
+    credentials: "include",
   });
 
   if (res.status === 204) {

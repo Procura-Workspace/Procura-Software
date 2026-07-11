@@ -86,7 +86,7 @@ export function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return (
       typeof window !== "undefined" &&
-      !!window.localStorage.getItem("procura_token")
+      !!window.localStorage.getItem("procura-user-id")
     );
   });
   const [navigation, setNavigation] = useState<NavigationState>({
@@ -480,21 +480,16 @@ export function App() {
 
   const handleLogout = useCallback(async () => {
     try {
-      const refreshToken =
-        window.localStorage.getItem("procura_refresh_token") || "";
-      await fetch("http://127.0.0.1:8080/auth/logout", {
+      await fetch("http://localhost:8080/auth/logout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${window.localStorage.getItem("procura_token")}`,
         },
-        body: JSON.stringify({ refreshToken }),
+        credentials: "include",
       });
     } catch (e) {
       console.error("Logout request failed:", e);
     } finally {
-      window.localStorage.removeItem("procura_token");
-      window.localStorage.removeItem("procura_refresh_token");
       window.localStorage.removeItem("procura-role");
       window.localStorage.removeItem("procura-user-id");
       setIsAuthenticated(false);
@@ -506,9 +501,7 @@ export function App() {
     return (
       <>
         <LoginPage
-          onLoginSuccess={(token, refreshToken, user) => {
-            window.localStorage.setItem("procura_token", token);
-            window.localStorage.setItem("procura_refresh_token", refreshToken);
+          onLoginSuccess={(user) => {
             window.localStorage.setItem("procura-role", user.role);
             window.localStorage.setItem("procura-user-id", user.id);
             setRole(user.role as AppRole);

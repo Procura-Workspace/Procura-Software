@@ -1,7 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import crypto from "node:crypto";
 import type { AuthService } from "./auth.service.js";
 import { getCurrentUser } from "../../security/current-user.js";
+import { loadEnv } from "../../config/env.js";
 
 const loginRequestSchema = z.object({
   email: z.string().email(),
@@ -12,6 +14,7 @@ export async function registerAuthRoutes(
   app: FastifyInstance,
   auth: AuthService,
 ) {
+  const env = loadEnv();
   /**
    * POST /auth/login
    */
@@ -61,7 +64,10 @@ export async function registerAuthRoutes(
     async (request, reply) => {
       const { email, password } = loginRequestSchema.parse(request.body);
 
-      const session = await auth.login(email, password);
+      const session = await auth.login(email, password, {
+        ip: request.ip,
+        log: request.log,
+      });
       if (!session) {
         return reply.code(401).send({
           error: "UNAUTHORIZED",
@@ -69,7 +75,21 @@ export async function registerAuthRoutes(
         });
       }
 
-      return session;
+      // Generate a random CSRF token
+      const csrfToken = crypto.randomUUID();
+
+      const isProd = env.NODE_ENV === "production";
+      const secureFlag = isProd ? "Secure;" : "";
+
+      // Set HttpOnly, Secure, SameSite=Strict cookies
+      // Note: procura_csrf is NOT HttpOnly, allowing the JS client to read it.
+      reply.header("Set-Cookie", [
+        `procura_token=${session.token}; Path=/; HttpOnly; ${secureFlag} SameSite=Strict`,
+        `procura_refresh_token=${session.refreshToken}; Path=/; HttpOnly; ${secureFlag} SameSite=Strict`,
+        `procura_csrf=${csrfToken}; Path=/; ${secureFlag} SameSite=Strict`,
+      ]);
+
+      return { user: session.user };
     },
   );
 
@@ -79,12 +99,14 @@ export async function registerAuthRoutes(
   app.post(
     "/auth/logout",
     {
+      preHandler: async (request) => {
+        getCurrentUser(request);
+      },
       schema: {
         description: "Invalider la session active",
         tags: ["auth"],
         body: {
           type: "object",
-          required: ["refreshToken"],
           properties: {
             refreshToken: { type: "string" },
           },
@@ -101,9 +123,39 @@ export async function registerAuthRoutes(
     },
     async (request, reply) => {
       const user = getCurrentUser(request);
-      const body = request.body as { refreshToken: string };
 
-      await auth.logout(user.id, body.refreshToken);
+      const parseCookies = (cookieHeader?: string): Record<string, string> => {
+        const cookies: Record<string, string> = {};
+        if (!cookieHeader) return cookies;
+        for (const pair of cookieHeader.split(";")) {
+          const [key, val] = pair.split("=");
+          if (key && val) {
+            cookies[key.trim()] = val.trim();
+          }
+        }
+        return cookies;
+      };
+
+      const cookies = parseCookies(request.headers.cookie);
+      const cookieRefreshToken = cookies.procura_refresh_token;
+
+      const body = request.body as { refreshToken?: string };
+      const refreshToken = body?.refreshToken || cookieRefreshToken;
+
+      if (refreshToken) {
+        await auth.logout(user.id, refreshToken);
+      }
+
+      const isProd = env.NODE_ENV === "production";
+      const secureFlag = isProd ? "Secure;" : "";
+
+      // Clear cookies
+      reply.header("Set-Cookie", [
+        `procura_token=; Path=/; HttpOnly; ${secureFlag} SameSite=Strict; Max-Age=0`,
+        `procura_refresh_token=; Path=/; HttpOnly; ${secureFlag} SameSite=Strict; Max-Age=0`,
+        `procura_csrf=; Path=/; ${secureFlag} SameSite=Strict; Max-Age=0`,
+      ]);
+
       return { success: true };
     },
   );

@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: procura-ldap
+    ports:
+      - "389:389"
+      - "636:636"
+    environment:
+      LDAP_ORGANISATION: "Procura"
+      LDAP_DOMAIN: "procura.dz"
+      LDAP_ADMIN_PASSWORD: "admin_password"
+      LDAP_CONFIG_PASSWORD: "config_password"
+    volumes:
+      - procura-ldap-data:/var/lib/ldap
+      - procura-ldap-config:/etc/ldap/slapd.d
+    networks:
+      - procura-lan
+
+volumes:
+  procura-ldap-data:
+  procura-ldap-config:
+
+networks:
+  procura-lan:
+    external: true
+    name: procura-lan

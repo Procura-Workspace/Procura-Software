@@ -109,11 +109,61 @@ export async function buildApp() {
       });
     }
 
+    const err = error as any;
+    const statusCode = err.statusCode || 500;
+    if (statusCode < 500) {
+      return reply.code(statusCode).send({
+        error: err.name || "CLIENT_ERROR",
+        message: err.message,
+      });
+    }
+
     app.log.error(error);
     return reply.code(500).send({
       error: "INTERNAL_ERROR",
       message: "Erreur interne",
     });
+  });
+
+  app.addHook("preHandler", async (request, reply) => {
+    const method = request.method;
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+      if (request.url === "/auth/login") {
+        return;
+      }
+
+      const parseCookies = (cookieHeader?: string): Record<string, string> => {
+        const cookies: Record<string, string> = {};
+        if (!cookieHeader) return cookies;
+        for (const pair of cookieHeader.split(";")) {
+          const [key, val] = pair.split("=");
+          if (key && val) {
+            cookies[key.trim()] = val.trim();
+          }
+        }
+        return cookies;
+      };
+
+      const cookies = parseCookies(request.headers.cookie);
+      const cookieCsrf = cookies.procura_csrf;
+      const headerCsrf = request.headers["x-csrf-token"];
+
+      if (!cookieCsrf || !headerCsrf || cookieCsrf !== headerCsrf) {
+        request.log.warn(
+          {
+            url: request.url,
+            method,
+            hasCookie: !!cookieCsrf,
+            hasHeader: !!headerCsrf,
+          },
+          "CSRF validation failed: token mismatch or missing",
+        );
+        const error = new Error("Validation CSRF échouée");
+        (error as any).statusCode = 403;
+        error.name = "FORBIDDEN";
+        throw error;
+      }
+    }
   });
 
   const store = createStore();
